@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateApiKey } = require('../middleware/auth.middleware');
-const { triggerPostgresBackup, triggerMongoDBBackup } = require('../services/backup.service');
+const { triggerPostgresBackup, triggerMongoDBBackup, listPostgresBackups } = require('../services/backup.service');
 const logger = require('../utils/logger');
 const { scheduleBackupTask } = require('../services/task.service');
 
@@ -84,6 +84,16 @@ router.post('/mongodb/schedule', authenticateApiKey, async (req, res, next) => {
     const result = await scheduleBackupTask('mongodb', delayMinutes);
 
     // Send success response
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/postgres/list', authenticateApiKey, async (req, res, next) => {
+  try {
+    logger.info('PostgreSQL backup list request received');
+    const result = await listPostgresBackups();
     res.status(200).json(result);
   } catch (error) {
     next(error);
