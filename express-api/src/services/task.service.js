@@ -1,10 +1,5 @@
-const { CloudTasksClient } = require('@google-cloud/tasks');
+const { cloudTasksClient } = require('../config/cloudtasks.config');
 const { env } = require('../config/env');
-
-const taskClient = new CloudTasksClient({
-    projectId: env.GCP_PROJECT_ID,
-    keyFilename: env.GOOGLE_APPLICATION_CREDENTIALS
-});
 
 async function scheduleBackupTask(database, delayMinutes) {
     try {
@@ -14,7 +9,7 @@ async function scheduleBackupTask(database, delayMinutes) {
         const project = env.GCP_PROJECT_ID;
         const location = env.CLOUD_TASKS_LOCATION || 'us-central1';
         const queue = env.CLOUD_TASKS_QUEUE || 'backup-queue';
-        const parent = taskClient.queuePath(project, location, queue);
+        const parent = cloudTasksClient.queuePath(project, location, queue);
 
         console.log(`📋 Queue path: ${parent}`);
     
@@ -29,7 +24,7 @@ async function scheduleBackupTask(database, delayMinutes) {
         }
 
         const task = {
-            name: taskClient.taskPath(
+            name: cloudTasksClient.taskPath(
               project,
               location,
               queue,
@@ -61,7 +56,7 @@ async function scheduleBackupTask(database, delayMinutes) {
           };
 
               // Create the task
-        const [response] = await taskClient.createTask({ parent, task });
+        const [response] = await cloudTasksClient.createTask({ parent, task });
         
         console.log(`✅ Task created: ${response.name}`);
         console.log(`📅 Scheduled for: ${scheduleTime.toISOString()}`);

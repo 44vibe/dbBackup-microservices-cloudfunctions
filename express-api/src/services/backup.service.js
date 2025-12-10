@@ -1,9 +1,6 @@
 const { pubsubClient } = require('../config/pubsub.config');
-const { Storage } = require('@google-cloud/storage');
 const { env } = require('../config/env');
 const logger = require('../utils/logger');
-
-const storage = new Storage();
 
 /**
  * Trigger PostgreSQL backup
@@ -68,38 +65,4 @@ async function triggerMongoDBBackup() {
   }
 }
 
-/**
- * List all PostgreSQL backups from GCS
- */
-
-async function listPostgresBackups() {
-  try{
-    const bucketName = env.GCS_BACKUP_BUCKET;
-    const prefix = 'postgres/';
-
-    const [files] = await storage.bucket(bucketName).getFiles({prefix});
-
-    const backups = files.map(file => ({
-      name: file.name,
-      size: file.metadata.size,
-      created: file.metadata.timeCreated,
-      updated: file.metadata.updated,
-      url: `gs://${bucketName}/${file.name}`,
-    }));
-
-    return {
-      success: true,
-      count: backups.length,
-      data: backups.sort((a,b)=> new Date(b.created) - new Date(a.created)), // Sort by created date in descending order
-      message: 'PostgreSQL backups listed successfully',
-    }
-  } catch(error) {
-    logger.error('Error listing PostgreSQL backups:', error);
-    throw new Error(`Failed to list PostgreSQL backups: ${error.message}`);
-  }
-}
-
-
-
-
-module.exports = { triggerPostgresBackup, triggerMongoDBBackup, listPostgresBackups };
+module.exports = { triggerPostgresBackup, triggerMongoDBBackup };
