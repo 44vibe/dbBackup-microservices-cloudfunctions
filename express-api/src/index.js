@@ -33,6 +33,7 @@ app.get('/', (req, res) => {
         scheduleMongoDBBackup: 'POST /backup/mongodb/schedule (requires x-api-key header and delayMinutes in body)',
         listPostgresBackups: 'GET /backup/postgres/list (requires x-api-key header)',
         listMongoDBBackups: 'GET /backup/mongodb/list (requires x-api-key header)',
+        downloadPostgresBackup: 'GET /backup/download?fileName=postgres/backup-2024-01-01.sql (requires x-api-key header)',
       },
     });
   });
@@ -78,6 +79,7 @@ const startServer = async () => {
       console.log(`   POST http://localhost:${PORT}/backup/mongodb/schedule`);
       console.log(`   GET http://localhost:${PORT}/backup/postgres/list`);
       console.log(`   GET http://localhost:${PORT}/backup/mongodb/list`);
+      console.log(`   GET http://localhost:${PORT}/backup/download?fileName=postgres/backup-2024-01-01.sql`);
       console.log('\n✨ Ready to accept requests!\n');
     });
   } catch (error) {

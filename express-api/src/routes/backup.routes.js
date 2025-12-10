@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticateApiKey } = require('../middleware/auth.middleware');
 const { triggerPostgresBackup, triggerMongoDBBackup } = require('../services/backup.service');
-const { listPostgresBackups, listMongoDBBackups } = require('../services/bucket.service');
+const { listPostgresBackups, listMongoDBBackups, generateDownloadUrl } = require('../services/bucket.service');
 const logger = require('../utils/logger');
 const { scheduleBackupTask } = require('../services/task.service');
 
@@ -105,6 +105,31 @@ router.get('/mongodb/list', authenticateApiKey, async (req, res, next) => {
   try {
     logger.info('MongoDB backup list request received');
     const result = await listMongoDBBackups();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /backup/download
+ * Generate a signed URL for downloading a backup file
+ * Query params: ?fileName=postgres/backup-2024-01-01.sql&expiresInMinutes=60
+ */
+router.get('/download', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { fileName, expiresInMinutes } = req.query;
+
+    if (!fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'fileName query parameter is required',
+      });
+    }
+
+    logger.info(`Download URL request for: ${fileName}`);
+    const expiresMinutes = expiresInMinutes ? parseInt(expiresInMinutes) : undefined;
+    const result = await generateDownloadUrl(fileName, expiresMinutes);
     res.status(200).json(result);
   } catch (error) {
     next(error);
