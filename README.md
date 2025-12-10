@@ -189,7 +189,7 @@ dbBackup-microservices-cloudfunctions/
    npm start      # Production
    ```
 
-   Server will run on `http://localhost:3001`
+   Server will run on `http://localhost:3000`
 
 ### Frontend Setup (Watchdogs)
 
@@ -328,7 +328,7 @@ await api.task.cancelTask(taskId);
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `PORT` | Server port | No | 3001 |
+| `PORT` | Server port | No | 3000 |
 | `NODE_ENV` | Environment mode | No | development |
 | `GCP_PROJECT_ID` | Google Cloud project ID | Yes | - |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account JSON | Yes | - |
