@@ -34,6 +34,9 @@ app.get('/', (req, res) => {
         listPostgresBackups: 'GET /backup/postgres/list (requires x-api-key header)',
         listMongoDBBackups: 'GET /backup/mongodb/list (requires x-api-key header)',
         downloadPostgresBackup: 'GET /backup/download?fileName=postgres/backup-2024-01-01.sql (requires x-api-key header)',
+        listTasks: 'GET /backup/tasks (requires x-api-key header)',
+        getTaskDetails: 'GET /backup/tasks/:taskId (requires x-api-key header)',
+        cancelTask: 'DELETE /backup/tasks/:taskId (requires x-api-key header)',
       },
     });
   });
@@ -80,6 +83,9 @@ const startServer = async () => {
       console.log(`   GET http://localhost:${PORT}/backup/postgres/list`);
       console.log(`   GET http://localhost:${PORT}/backup/mongodb/list`);
       console.log(`   GET http://localhost:${PORT}/backup/download?fileName=postgres/backup-2024-01-01.sql`);
+      console.log(`   GET http://localhost:${PORT}/backup/tasks`);
+      console.log(`   GET http://localhost:${PORT}/backup/tasks/:taskId`);
+      console.log(`   DELETE http://localhost:${PORT}/backup/tasks/:taskId`);
       console.log('\n✨ Ready to accept requests!\n');
     });
   } catch (error) {

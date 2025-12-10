@@ -4,7 +4,7 @@ const { authenticateApiKey } = require('../middleware/auth.middleware');
 const { triggerPostgresBackup, triggerMongoDBBackup } = require('../services/backup.service');
 const { listPostgresBackups, listMongoDBBackups, generateDownloadUrl } = require('../services/bucket.service');
 const logger = require('../utils/logger');
-const { scheduleBackupTask } = require('../services/task.service');
+const { scheduleBackupTask, listScheduledTasks, getTaskDetails, cancelScheduledTask } = require('../services/task.service');
 
 /**
  * POST /backup/postgres
@@ -105,6 +105,64 @@ router.get('/mongodb/list', authenticateApiKey, async (req, res, next) => {
   try {
     logger.info('MongoDB backup list request received');
     const result = await listMongoDBBackups();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /backup/tasks
+ * List all scheduled backup tasks
+ */
+router.get('/tasks', authenticateApiKey, async (req, res, next) => {
+  try {
+    logger.info('Scheduled tasks list request received');
+    const result = await listScheduledTasks();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /backup/tasks/:taskId
+ * Get details of a specific scheduled task
+ */
+router.get('/tasks/:taskId', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+
+    // Construct full task name from taskId
+    const project = process.env.GCP_PROJECT_ID;
+    const location = process.env.CLOUD_TASKS_LOCATION || 'us-central1';
+    const queue = process.env.CLOUD_TASKS_QUEUE || 'backup-queue';
+    const taskName = `projects/${project}/locations/${location}/queues/${queue}/tasks/${taskId}`;
+
+    logger.info(`Task details request for: ${taskId}`);
+    const result = await getTaskDetails(taskName);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /backup/tasks/:taskId
+ * Cancel a scheduled backup task
+ */
+router.delete('/tasks/:taskId', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+
+    // Construct full task name from taskId
+    const project = process.env.GCP_PROJECT_ID;
+    const location = process.env.CLOUD_TASKS_LOCATION || 'us-central1';
+    const queue = process.env.CLOUD_TASKS_QUEUE || 'backup-queue';
+    const taskName = `projects/${project}/locations/${location}/queues/${queue}/tasks/${taskId}`;
+
+    logger.info(`Cancel task request for: ${taskId}`);
+    const result = await cancelScheduledTask(taskName);
     res.status(200).json(result);
   } catch (error) {
     next(error);
