@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { api, triggerQdrantDBBackup, triggerQuestDBBackup } from "@/lib/api";
 
 export function BackupTriggers() {
   const { mutate: triggerPostgresBackup, isPending: isPGLoading } = useMutation({
@@ -33,6 +33,27 @@ export function BackupTriggers() {
     },
   });
 
+  const { mutate: triggerQuestDBBackup, isPending: isQuestDBLoading } = useMutation({
+    mutationFn: api.backup.triggerQuestDBBackup,
+    onSuccess: (data) => {
+      toast.success(data.message || "QuestDB backup triggered successfully!");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const { mutate: triggerQdrantDBBackup, isPending: isQdrantDBLoading } = useMutation({
+    mutationFn: api.backup.triggerQdrantDBBackup,
+    onSuccess: (data) => {
+      toast.success(data.message || "QdrantDB backup triggered successfully!");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+
   return (
     <Card>
       <CardHeader>
@@ -45,6 +66,12 @@ export function BackupTriggers() {
         </Button>
         <Button onClick={() => triggerMongoBackup()} disabled={isMongoLoading}>
           {isMongoLoading ? "Triggering..." : "Trigger MongoDB Backup"}
+        </Button>
+        <Button onClick={() => triggerQuestDBBackup()} disabled={isQuestDBLoading}>
+          {isQuestDBLoading ? "Triggering..." : "Trigger QuestDB Backup"}
+        </Button>
+        <Button onClick={() => triggerQdrantDBBackup()} disabled={isQdrantDBLoading}>
+          {isQdrantDBLoading ? "Triggering..." : "Trigger QdrantDB Backup"}
         </Button>
       </CardContent>
     </Card>

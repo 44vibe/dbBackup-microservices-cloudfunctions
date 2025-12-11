@@ -31,10 +31,10 @@ function formatBytes(bytes: number): string {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
-function BackupTable({ db }: { db: "postgres" | "mongodb" }) {
+function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantdb" }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["backups", db],
-    queryFn: () => db === "postgres" ? api.backup.listPostgresBackups() : api.backup.listMongoDBBackups(),
+    queryFn: () => db === "postgres" ? api.backup.listPostgresBackups() : db === "mongodb" ? api.backup.listMongoDBBackups() : db === "questdb" ? api.backup.listQuestDBBackups() : api.backup.listQdrantDBBackups(),
   });
 
   const { mutate, isPending } = useMutation({
@@ -104,12 +104,20 @@ export function BackupManagement() {
           <TabsList>
             <TabsTrigger value="postgres">PostgreSQL</TabsTrigger>
             <TabsTrigger value="mongodb">MongoDB</TabsTrigger>
+            <TabsTrigger value="questdb">QuestDB</TabsTrigger>
+            <TabsTrigger value="qdrantdb">QdrantDB</TabsTrigger>
           </TabsList>
           <TabsContent value="postgres">
             <BackupTable db="postgres" />
           </TabsContent>
           <TabsContent value="mongodb">
             <BackupTable db="mongodb" />
+          </TabsContent>
+          <TabsContent value="questdb">
+            <BackupTable db="questdb" />
+          </TabsContent>
+          <TabsContent value="qdrantdb">
+            <BackupTable db="qdrantdb" />
           </TabsContent>
         </Tabs>
       </CardContent>

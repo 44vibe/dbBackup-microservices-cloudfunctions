@@ -34,7 +34,7 @@ export interface BackupFile {
 export interface ScheduledTask {
   taskName: string;
   taskId: string;
-  database: 'postgres' | 'mongodb' | 'unknown';
+  database: 'postgres' | 'mongodb' | 'questdb' | 'qdrantdb';
   scheduledFor: string;
   state: 'pending' | 'dispatched';
   dispatchCount: number;
@@ -47,7 +47,7 @@ export interface ScheduledTask {
 export interface TaskDetails {
   taskName: string;
   taskId: string;
-  database: string;
+  database: 'postgres' | 'mongodb' | 'questdb' | 'qdrantdb';
   scheduledFor: string;
   state: string;
   dispatchCount: number;
@@ -92,6 +92,26 @@ export async function triggerMongoDBBackup(): Promise<ApiResponse> {
   return response.json();
 }
 
+// Trigger an immediate QuestDB backup
+export async function triggerQuestDBBackup(): Promise<ApiResponse> {
+  const response = await fetch(`${API_URL}/backup/questdb`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to trigger QuestDB backup');
+  return response.json();
+}
+
+// Trigger an immediate QdrantDB backup
+export async function triggerQdrantDBBackup(): Promise<ApiResponse> {
+  const response = await fetch(`${API_URL}/backup/qdrantdb`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to trigger QdrantDB backup');
+  return response.json();
+}
+
 // Get list of all PostgreSQL backup files
 export async function listPostgresBackups(): Promise<ApiResponse<BackupFile[]>> {
   const response = await fetch(`${API_URL}/backup/postgres/list`, {
@@ -107,6 +127,26 @@ export async function listMongoDBBackups(): Promise<ApiResponse<BackupFile[]>> {
     headers: getHeaders(),
   });
   if (!response.ok) throw new Error('Failed to list MongoDB backups');
+  return response.json();
+}
+
+
+// Get list of all QuestDB backup files
+export async function listQuestDBBackups(): Promise<ApiResponse<BackupFile[]>> {
+  const response = await fetch(`${API_URL}/backup/questdb/list`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to list QuestDB backups');
+  return response.json();
+}
+
+
+// Get list of all QdrantDB backup files
+export async function listQdrantDBBackups(): Promise<ApiResponse<BackupFile[]>> {
+  const response = await fetch(`${API_URL}/backup/qdrantdb/list`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to list QdrantDB backups');
   return response.json();
 }
 
@@ -129,6 +169,28 @@ export async function scheduleMongoDBBackup(delayMinutes: number): Promise<ApiRe
     body: JSON.stringify({ delayMinutes }),
   });
   if (!response.ok) throw new Error('Failed to schedule MongoDB backup');
+  return response.json();
+}
+
+// Schedule a QuestDB backup for later (delayMinutes = how many minutes from now)
+export async function scheduleQuestDBBackup(delayMinutes: number): Promise<ApiResponse> {
+  const response = await fetch(`${API_URL}/backup/questdb/schedule`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ delayMinutes }),
+  });
+  if (!response.ok) throw new Error('Failed to schedule QuestDB backup');
+  return response.json();
+}
+
+// Schedule a QdrantDB backup for later (delayMinutes = how many minutes from now)
+export async function scheduleQdrantDBBackup(delayMinutes: number): Promise<ApiResponse> {
+  const response = await fetch(`${API_URL}/backup/qdrantdb/schedule`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ delayMinutes }),
+  });
+  if (!response.ok) throw new Error('Failed to schedule QdrantDB backup');
   return response.json();
 }
 
@@ -164,7 +226,7 @@ export async function getTaskDetails(taskId: string): Promise<ApiResponse<TaskDe
   return response.json();
 }
 
-// Cancel a scheduled task (it won't run)
+// Cancel a scheduled task 
 export async function cancelTask(taskId: string): Promise<ApiResponse> {
   const response = await fetch(`${API_URL}/backup/tasks/${taskId}`, {
     method: 'DELETE',
@@ -195,10 +257,16 @@ export const api = {
   backup: {
     triggerPostgresBackup,
     triggerMongoDBBackup,
+    triggerQuestDBBackup,
+    triggerQdrantDBBackup,
     listPostgresBackups,
     listMongoDBBackups,
+    listQuestDBBackups,
+    listQdrantDBBackups,
     schedulePostgresBackup,
     scheduleMongoDBBackup,
+    scheduleQuestDBBackup,
+    scheduleQdrantDBBackup,
     generateDownloadUrl,
   },
   task: {

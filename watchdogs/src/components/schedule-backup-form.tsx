@@ -26,21 +26,25 @@ import {
 import { api } from "@/lib/api";
 
 const scheduleBackupSchema = z.object({
-  dbType: z.enum(["postgres", "mongodb"]),
+  dbType: z.enum(["postgres", "mongodb", "questdb", "qdrantdb"]),
   delayMinutes: z.coerce.number().min(1, "Delay must be at least 1 minute").max(43200, "Delay cannot exceed 30 days (43200 minutes)"),
 });
 
 async function scheduleBackup(data: z.infer<typeof scheduleBackupSchema>) {
   if (data.dbType === "postgres") {
     return api.backup.schedulePostgresBackup(data.delayMinutes);
-  } else {
+  } else if (data.dbType === "mongodb") {
     return api.backup.scheduleMongoDBBackup(data.delayMinutes);
+  } else if (data.dbType === "questdb") {
+    return api.backup.scheduleQuestDBBackup(data.delayMinutes);
+  } else if (data.dbType === "qdrantdb") {
+    return api.backup.scheduleQdrantDBBackup(data.delayMinutes);
   }
 }
 
 export function ScheduleBackupForm() {
   const queryClient = useQueryClient();
-  const [dbType, setDbType] = useState<"postgres" | "mongodb" | "">("");
+  const [dbType, setDbType] = useState<"postgres" | "mongodb" | "questdb" | "qdrantdb" | "">("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [errors, setErrors] = useState<{ dbType?: string; scheduleTime?: string }>({});
   const [isOpen, setIsOpen] = useState(false);
@@ -48,7 +52,7 @@ export function ScheduleBackupForm() {
   const { mutate, isPending } = useMutation({
     mutationFn: scheduleBackup,
     onSuccess: (data) => {
-      toast.success(data.message || "Backup scheduled successfully!");
+      toast.success(data?.message || "Backup scheduled successfully!");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setIsOpen(false);
       setDbType("");
@@ -136,6 +140,8 @@ export function ScheduleBackupForm() {
             <SelectContent>
               <SelectItem value="postgres">PostgreSQL</SelectItem>
               <SelectItem value="mongodb">MongoDB</SelectItem>
+              <SelectItem value="questdb">QuestDB</SelectItem>
+              <SelectItem value="qdrantdb">QdrantDB</SelectItem>
             </SelectContent>
           </Select>
           {errors.dbType && <p className="text-sm text-red-500">{errors.dbType}</p>}
