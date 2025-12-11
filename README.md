@@ -25,10 +25,30 @@ This system consists of three main components:
 
 ### Data Flow
 
-```
-User → Watchdogs UI → Express API → Pub/Sub → Cloud Functions → GCS Bucket
-                         ↓
-                    Cloud Tasks (Scheduled)
+```mermaid
+flowchart TB
+    User["👤 User"] -->|"Immediate Backup<br/>POST /backup/postgres"| API["Express API"]
+    User -->|"Scheduled Backup<br/>POST /backup/schedule"| API
+    
+    API -->|"Option 1:<br/>Immediate"| PubSub["Pub/Sub Topics"]
+    API -->|"Option 2:<br/>Delayed"| CloudTasks["Cloud Tasks<br/>(Schedule for later)"]
+    
+    CloudTasks -.->|"After delay"| PubSub
+    
+    PubSub -->|"Trigger"| CloudFunction["Cloud Functions<br/>(postgres or mongodb)"]
+    
+    CloudFunction -->|"1. Get credentials"| SecretManager["Secret Manager"]
+    CloudFunction -->|"2. SSH + backup"| VM["VM<br/>(Databases)"]
+    CloudFunction -->|"3. Upload"| GCS["GCS Bucket"]
+    
+    style User fill:#ea4335,stroke:#c5221f,color:#fff
+    style API fill:#ea4335,stroke:#c5221f,color:#fff
+    style CloudTasks fill:#fbbc04,stroke:#f29900,color:#000
+    style PubSub fill:#4285f4,stroke:#1a73e8,color:#fff
+    style CloudFunction fill:#34a853,stroke:#0f9d58,color:#fff
+    style SecretManager fill:#9334e6,stroke:#7c2ec9,color:#fff
+    style VM fill:#fbbc04,stroke:#f29900,color:#000
+    style GCS fill:#ff6d00,stroke:#e65100,color:#fff
 ```
 
 ---
