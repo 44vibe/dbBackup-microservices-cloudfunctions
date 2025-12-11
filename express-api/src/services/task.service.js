@@ -13,7 +13,7 @@ async function scheduleBackupTask(database, delayMinutes) {
 
         console.log(`📋 Queue path: ${parent}`);
     
-        const topicName = database === 'postgres' ? 'postgres-backup-trigger' : 'mongodb-backup-trigger';
+        const topicName = database === 'postgres' ? 'postgres-backup-trigger' : database === 'mongodb' ? 'mongodb-backup-trigger' : 'questdb-backup-trigger';
 
         const message = {
             action: 'backup',
@@ -99,7 +99,7 @@ async function listScheduledTasks() {
             const taskNameParts = task.name.split('/');
             const taskId = taskNameParts[taskNameParts.length - 1];
             const database = taskId.includes('postgres') ? 'postgres' :
-                           taskId.includes('mongodb') ? 'mongodb' : 'unknown';
+                           taskId.includes('mongodb') ? 'mongodb' : taskId.includes('questdb') ? 'questdb' : 'unknown';
 
             // Parse schedule time
             const scheduleTimeSeconds = task.scheduleTime?.seconds || 0;
@@ -152,7 +152,7 @@ async function getTaskDetails(taskName) {
         const taskNameParts = taskName.split('/');
         const taskId = taskNameParts[taskNameParts.length - 1];
         const database = taskId.includes('postgres') ? 'postgres' :
-                       taskId.includes('mongodb') ? 'mongodb' : 'unknown';
+                       taskId.includes('mongodb') ? 'mongodb' : taskId.includes('questdb') ? 'questdb' : 'unknown';
 
         // Parse schedule time
         const scheduleTimeSeconds = task.scheduleTime?.seconds || 0;

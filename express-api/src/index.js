@@ -37,6 +37,9 @@ app.get('/', (req, res) => {
         listTasks: 'GET /backup/tasks (requires x-api-key header)',
         getTaskDetails: 'GET /backup/tasks/:taskId (requires x-api-key header)',
         cancelTask: 'DELETE /backup/tasks/:taskId (requires x-api-key header)',
+        triggerQuestDBBackup: 'POST /backup/questdb (requires x-api-key header)',
+        scheduleQuestDBBackup: 'POST /backup/questdb/schedule (requires x-api-key header and delayMinutes in body)',
+        listQuestDBBackups: 'GET /backup/questdb/list (requires x-api-key header)',
       },
     });
   });
@@ -86,6 +89,9 @@ const startServer = async () => {
       console.log(`   GET http://localhost:${PORT}/backup/tasks`);
       console.log(`   GET http://localhost:${PORT}/backup/tasks/:taskId`);
       console.log(`   DELETE http://localhost:${PORT}/backup/tasks/:taskId`);
+      console.log(`   POST http://localhost:${PORT}/backup/questdb`);
+      console.log(`   POST http://localhost:${PORT}/backup/questdb/schedule`);
+      console.log(`   GET http://localhost:${PORT}/backup/questdb/list`);
       console.log('\n✨ Ready to accept requests!\n');
     });
   } catch (error) {

@@ -65,4 +65,34 @@ async function triggerMongoDBBackup() {
   }
 }
 
-module.exports = { triggerPostgresBackup, triggerMongoDBBackup };
+/**
+ * Trigger QuestDB backup
+ */
+async function triggerQuestDBBackup() {
+  try {
+    const questdbTopic = pubsubClient.topic(env.QUESTDB_TOPIC);
+    const message = {
+      action: 'backup',
+      database: 'questdb',
+      triggeredBy: 'manual',
+      timestamp: new Date().toISOString(),
+    };
+
+    const messageBuffer = Buffer.from(JSON.stringify(message));
+    const messageId = await questdbTopic.publishMessage({ data: messageBuffer });
+    
+    logger.success(`Message published to Pub/Sub. Message ID: ${messageId}`);
+
+    return {
+      success: true,
+      messageId: messageId,
+      message: 'QuestDB backup triggered successfully',
+      data: message,
+    };
+  } catch (error) {
+    logger.error('Error publishing message to Pub/Sub:', error);
+    throw new Error(`Failed to trigger backup: ${error.message}`);
+  }
+}
+
+module.exports = { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup };

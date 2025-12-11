@@ -187,7 +187,7 @@ async function uploadBackupToGCS(vmIp, vmUsername, sshKey, backupInfo) {
 
                         const readStream = sftp.createReadStream(compressedPath);
                         const bucket = storage.bucket(bucketName);
-                        const gcsPath = `questdb-backup/${compressedFilename}`;
+                        const gcsPath = `questdb/${compressedFilename}`;
                         const file = bucket.file(gcsPath);
                         const writeStream = file.createWriteStream({
                             metadata: {
