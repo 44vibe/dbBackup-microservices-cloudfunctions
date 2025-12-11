@@ -95,4 +95,34 @@ async function triggerQuestDBBackup() {
   }
 }
 
-module.exports = { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup };
+/**
+ * Trigger QdrantDB backup
+ */
+async function triggerQdrantDBBackup() {
+  try {
+    const qdrantdbTopic = pubsubClient.topic(env.QDRANTDB_TOPIC);
+    const message = {
+      action: 'backup',
+      database: 'qdrantdb',
+      triggeredBy: 'manual',
+      timestamp: new Date().toISOString(),
+    };
+
+    const messageBuffer = Buffer.from(JSON.stringify(message));
+    const messageId = await qdrantdbTopic.publishMessage({ data: messageBuffer });
+
+    logger.success(`Message published to Pub/Sub. Message ID: ${messageId}`);
+
+    return {
+      success: true,
+      messageId: messageId,
+      message: 'QdrantDB backup triggered successfully',
+      data: message,
+    };
+  } catch (error) {
+    logger.error('Error publishing message to Pub/Sub:', error);
+    throw new Error(`Failed to trigger backup: ${error.message}`);
+  }
+}
+
+module.exports = { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup, triggerQdrantDBBackup };

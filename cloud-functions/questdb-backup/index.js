@@ -72,7 +72,12 @@ function executeBackup(vmIp, vmUsername, sshKey) {
         conn.on('ready', () => {
             console.log('SSH connection established');
 
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            // Create a readable timestamp: YYYY-MM-DD_HH-MM-SS
+            const now = new Date();
+            const timestamp = now.toISOString()
+                .replace(/T/, '_')
+                .replace(/:/g, '-')
+                .replace(/\..+/, '');
             const backupDir = `/tmp/questdb_backups`;
 
             // QuestDB checkpoint backup command

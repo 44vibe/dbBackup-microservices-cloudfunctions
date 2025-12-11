@@ -10,6 +10,7 @@ GOOGLE_APPLICATION_CREDENTIALS: z.string().min(1, 'GOOGLE_APPLICATION_CREDENTIAL
 POSTGRES_TOPIC: z.string().min(1, 'POSTGRES_TOPIC is required'),
 MONGODB_TOPIC: z.string().min(1, 'MONGODB_TOPIC is required'),
 QUESTDB_TOPIC: z.string().min(1, 'QUESTDB_TOPIC is required'),
+QDRANTDB_TOPIC: z.string().min(1, 'QDRANTDB_TOPIC is required'),
 CLOUD_TASKS_QUEUE: z.string().optional(),
 CLOUD_TASKS_LOCATION: z.string().default('us-central1'),
 GCS_BACKUP_BUCKET: z.string().min(1, 'GCS_BACKUP_BUCKET is required'),

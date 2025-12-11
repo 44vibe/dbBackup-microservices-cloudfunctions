@@ -40,6 +40,9 @@ app.get('/', (req, res) => {
         triggerQuestDBBackup: 'POST /backup/questdb (requires x-api-key header)',
         scheduleQuestDBBackup: 'POST /backup/questdb/schedule (requires x-api-key header and delayMinutes in body)',
         listQuestDBBackups: 'GET /backup/questdb/list (requires x-api-key header)',
+        triggerQdrantDBBackup: 'POST /backup/qdrantdb (requires x-api-key header)',
+        scheduleQdrantDBBackup: 'POST /backup/qdrantdb/schedule (requires x-api-key header and delayMinutes in body)',
+        listQdrantDBBackups: 'GET /backup/qdrantdb/list (requires x-api-key header)',
       },
     });
   });
@@ -92,6 +95,9 @@ const startServer = async () => {
       console.log(`   POST http://localhost:${PORT}/backup/questdb`);
       console.log(`   POST http://localhost:${PORT}/backup/questdb/schedule`);
       console.log(`   GET http://localhost:${PORT}/backup/questdb/list`);
+      console.log(`   POST http://localhost:${PORT}/backup/qdrantdb`);
+      console.log(`   POST http://localhost:${PORT}/backup/qdrantdb/schedule`);
+      console.log(`   GET http://localhost:${PORT}/backup/qdrantdb/list`);
       console.log('\n✨ Ready to accept requests!\n');
     });
   } catch (error) {

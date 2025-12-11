@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateApiKey } = require('../middleware/auth.middleware');
-const { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup } = require('../services/backup.service');
-const { listPostgresBackups, listMongoDBBackups, listQuestDBBackups, generateDownloadUrl } = require('../services/bucket.service');
+const { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup, triggerQdrantDBBackup } = require('../services/backup.service');
+const { listPostgresBackups, listMongoDBBackups, listQuestDBBackups, listQdrantDBBackups, generateDownloadUrl } = require('../services/bucket.service');
 const logger = require('../utils/logger');
 const { scheduleBackupTask, listScheduledTasks, getTaskDetails, cancelScheduledTask } = require('../services/task.service');
 
@@ -133,6 +133,48 @@ router.post('/questdb/schedule', authenticateApiKey, async (req, res, next) => {
   }
 });
 
+/**
+ * POST /backup/qdrantdb
+ * Trigger QdrantDB backup
+ */
+router.post('/qdrantdb', authenticateApiKey, async (req, res, next) => {
+  try {
+    logger.info('QdrantDB backup request received');
+    const result = await triggerQdrantDBBackup();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+* POST /backup/qdrantdb/schedule
+* Schedule QdrantDB backup with delay
+*/
+router.post('/qdrantdb/schedule', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { delayMinutes } = req.body;
+
+    // Validate delay
+    if (!delayMinutes || delayMinutes < 1 || delayMinutes > 43200) {
+      return res.status(400).json({
+        success: false,
+        message: 'delayMinutes is required and must be between 1 and 43200 (30 days)',
+      });
+    }
+
+    console.log(`🔄 Scheduling QdrantDB backup in ${delayMinutes} minutes`);
+
+    // Schedule task
+    const result = await scheduleBackupTask('qdrantdb', delayMinutes);
+
+    // Send success response
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 router.get('/postgres/list', authenticateApiKey, async (req, res, next) => {
   try {
@@ -158,6 +200,16 @@ router.get('/questdb/list', authenticateApiKey, async (req, res, next) => {
   try {
     logger.info('QuestDB backup list request received');
     const result = await listQuestDBBackups();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/qdrantdb/list', authenticateApiKey, async (req, res, next) => {
+  try {
+    logger.info('QdrantDB backup list request received');
+    const result = await listQdrantDBBackups();
     res.status(200).json(result);
   } catch (error) {
     next(error);
