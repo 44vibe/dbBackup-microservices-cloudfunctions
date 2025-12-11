@@ -144,7 +144,9 @@ async function getTaskDetails(taskName) {
     try {
         console.log(`📋 Getting task details for: ${taskName}`);
 
-        const task = await cloudTasksClient.getTask({ name: taskName });
+        // The Cloud Tasks client returns an array: [task, request, response]
+        // We only need the actual task object here.
+        const [task] = await cloudTasksClient.getTask({ name: taskName });
 
         // Extract database type from task name
         const taskNameParts = taskName.split('/');

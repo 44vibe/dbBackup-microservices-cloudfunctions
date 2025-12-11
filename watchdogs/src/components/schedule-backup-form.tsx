@@ -41,8 +41,8 @@ async function scheduleBackup(data: z.infer<typeof scheduleBackupSchema>) {
 export function ScheduleBackupForm() {
   const queryClient = useQueryClient();
   const [dbType, setDbType] = useState<"postgres" | "mongodb" | "">("");
-  const [delayMinutes, setDelayMinutes] = useState("");
-  const [errors, setErrors] = useState<{ dbType?: string; delayMinutes?: string }>({});
+  const [scheduleTime, setScheduleTime] = useState("");
+  const [errors, setErrors] = useState<{ dbType?: string; scheduleTime?: string }>({});
   const [isOpen, setIsOpen] = useState(false);
 
   const { mutate, isPending } = useMutation({
@@ -52,7 +52,7 @@ export function ScheduleBackupForm() {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setIsOpen(false);
       setDbType("");
-      setDelayMinutes("");
+      setScheduleTime("");
       setErrors({});
     },
     onError: (error) => {
@@ -61,19 +61,52 @@ export function ScheduleBackupForm() {
   });
 
   const handleSubmit = () => {
+    const now = new Date();
+
+    if (!scheduleTime) {
+      setErrors({ scheduleTime: "Time is required" });
+      return;
+    }
+
+    const [hoursStr, minutesStr] = scheduleTime.split(":");
+    const hours = Number(hoursStr);
+    const minutes = Number(minutesStr);
+
+    if (
+      Number.isNaN(hours) ||
+      Number.isNaN(minutes) ||
+      hours < 0 ||
+      hours > 23 ||
+      minutes < 0 ||
+      minutes > 59
+    ) {
+      setErrors({ scheduleTime: "Enter a valid time in HH:MM (24-hour) format" });
+      return;
+    }
+
+    const target = new Date(now);
+    target.setHours(hours, minutes, 0, 0);
+
+    if (target <= now) {
+      setErrors({ scheduleTime: "Time must be in the future" });
+      return;
+    }
+
+    const delayMinutes = Math.ceil((target.getTime() - now.getTime()) / 60000);
+
     const result = scheduleBackupSchema.safeParse({
       dbType,
       delayMinutes,
     });
 
     if (!result.success) {
-      const formattedErrors: { dbType?: string; delayMinutes?: string } = {};
+      const formattedErrors: { dbType?: string; scheduleTime?: string } = {};
       result.error.issues.forEach((err: any) => {
         if (err.path[0] === "dbType") {
           formattedErrors.dbType = err.message;
         }
         if (err.path[0] === "delayMinutes") {
-          formattedErrors.delayMinutes = err.message;
+          formattedErrors.scheduleTime = err.message;
         }
       });
       setErrors(formattedErrors);
@@ -106,18 +139,21 @@ export function ScheduleBackupForm() {
             </SelectContent>
           </Select>
           {errors.dbType && <p className="text-sm text-red-500">{errors.dbType}</p>}
-          <Input
-            placeholder="Delay in minutes"
-            type="number"
-            value={delayMinutes}
-            onChange={(e) => setDelayMinutes(e.target.value)}
-          />
-          {errors.delayMinutes && (
-            <p className="text-sm text-red-500">{errors.delayMinutes}</p>
+          <p className="text-xs text-muted-foreground">Use 24 hour format (HH:MM)</p>
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Time (HH:MM, 24-hour)"
+              type="time"
+              value={scheduleTime}
+              onChange={(e) => setScheduleTime(e.target.value)}
+            />
+          {errors.scheduleTime && (
+            <p className="text-sm text-red-500">{errors.scheduleTime}</p>
           )}
+          </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSubmit} disabled={isPending}>
+          <Button onClick={handleSubmit} disabled={isPending || !dbType || !scheduleTime}>
             {isPending ? "Scheduling..." : "Schedule"}
           </Button>
         </DialogFooter>

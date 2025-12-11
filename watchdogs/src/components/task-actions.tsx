@@ -53,7 +53,7 @@ export function TaskActions({ taskId }: { taskId: string }) {
           {isLoading ? (
             <p>Loading task details...</p>
           ) : taskDetails?.data ? (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 space-y-2 w-auto">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="font-semibold">Task ID:</div>
                 <div className="font-mono">{taskDetails.data.taskId}</div>
@@ -73,12 +73,12 @@ export function TaskActions({ taskId }: { taskId: string }) {
                 <div className="font-semibold">Response Count:</div>
                 <div>{taskDetails.data.responseCount}</div>
               </div>
-              <details className="mt-4">
+              {/* <details className="mt-4">
                 <summary className="cursor-pointer font-semibold">Raw JSON</summary>
                 <pre className="mt-2 w-full rounded-md bg-slate-950 p-4 overflow-auto">
                   <code className="text-white text-xs">{JSON.stringify(taskDetails.data, null, 2)}</code>
                 </pre>
-              </details>
+              </details> */}
             </div>
           ) : (
             <p className="text-red-500">Failed to load task details</p>
