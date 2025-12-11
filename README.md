@@ -1,18 +1,6 @@
 # Database Backup Microservices
 
 A comprehensive cloud-native backup management system for PostgreSQL and MongoDB databases, built with Google Cloud Platform services and featuring a modern web interface.
-
-## 📋 Table of Contents
-
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [API Documentation](#api-documentation)
-- [Frontend Documentation](#frontend-documentation)
-- [Environment Variables](#environment-variables)
-
 ---
 
 ## 🏗️ Architecture
