@@ -123,7 +123,7 @@ export function ScheduleBackupForm() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>Schedule Backup</Button>
+        <Button className="cursor-pointer">Schedule Backup</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -159,7 +159,7 @@ export function ScheduleBackupForm() {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSubmit} disabled={isPending || !dbType || !scheduleTime}>
+          <Button onClick={handleSubmit} disabled={isPending || !dbType || !scheduleTime} className="cursor-pointer">
             {isPending ? "Scheduling..." : "Schedule"}
           </Button>
         </DialogFooter>

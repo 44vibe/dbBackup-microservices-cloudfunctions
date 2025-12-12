@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { api, type BackupFile } from "@/lib/api";
 
 // Helper function to format file size
@@ -32,16 +32,27 @@ function formatBytes(bytes: number): string {
 }
 
 function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantdb" }) {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["backups", db],
     queryFn: () => db === "postgres" ? api.backup.listPostgresBackups() : db === "mongodb" ? api.backup.listMongoDBBackups() : db === "questdb" ? api.backup.listQuestDBBackups() : api.backup.listQdrantDBBackups(),
   });
 
-  const { mutate, isPending } = useMutation({
+  const { mutate: downloadMutate, isPending: isDownloading } = useMutation({
     mutationFn: (fileName: string) => api.backup.generateDownloadUrl(fileName, 10),
     onSuccess: (data) => {
       toast.success(`Download link generated! Expires at ${new Date(data.expiresAt).toLocaleTimeString()}`);
       window.open(data.signedUrl, "_blank");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
+
+  const { mutate: deleteMutate, isPending: isDeleting } = useMutation({
+    mutationFn: (fileName: string) => api.backup.deleteBackupFile(fileName),
+    onSuccess: (data) => {
+      toast.success(data.message || "Backup file deleted successfully");
+      refetch();
     },
     onError: (error) => {
       toast.error(error.message);
@@ -77,10 +88,22 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
               <TableCell>{formatBytes(file.size)}</TableCell>
               <TableCell>{new Date(file.updated).toLocaleString()}</TableCell>
               <TableCell className="text-right">
-                <Button size="sm" onClick={() => mutate(file.name)} disabled={isPending}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" onClick={() => downloadMutate(file.name)} disabled={isDownloading} className="cursor-pointer">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => deleteMutate(file.name)}
+                    disabled={isDeleting}
+                    className="cursor-pointer"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))

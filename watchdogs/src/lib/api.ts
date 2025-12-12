@@ -204,6 +204,19 @@ export async function generateDownloadUrl(fileName: string, expiresInMinutes = 6
   return response.json();
 }
 
+// Delete a backup file from GCS
+export async function deleteBackupFile(fileName: string): Promise<ApiResponse> {
+  const response = await fetch(
+    `${API_URL}/backup/delete?fileName=${encodeURIComponent(fileName)}`,
+    {
+      method: 'DELETE',
+      headers: getHeaders(),
+    }
+  );
+  if (!response.ok) throw new Error('Failed to delete backup file');
+  return response.json();
+}
+
 // =============================================================================
 // TASK FUNCTIONS - Manage scheduled backup tasks
 // =============================================================================
@@ -268,6 +281,7 @@ export const api = {
     scheduleQuestDBBackup,
     scheduleQdrantDBBackup,
     generateDownloadUrl,
+    deleteBackupFile,
   },
   task: {
     listTasks,

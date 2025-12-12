@@ -61,16 +61,16 @@ export function BackupTriggers() {
         <CardDescription>Trigger an immediate backup for your databases.</CardDescription>
       </CardHeader>
       <CardContent className="flex gap-4">
-        <Button onClick={() => triggerPostgresBackup()} disabled={isPGLoading}>
+        <Button onClick={() => triggerPostgresBackup()} disabled={isPGLoading} className="cursor-pointer">
           {isPGLoading ? "Triggering..." : "Trigger PostgreSQL Backup"}
         </Button>
-        <Button onClick={() => triggerMongoBackup()} disabled={isMongoLoading}>
+        <Button onClick={() => triggerMongoBackup()} disabled={isMongoLoading} className="cursor-pointer">
           {isMongoLoading ? "Triggering..." : "Trigger MongoDB Backup"}
         </Button>
-        <Button onClick={() => triggerQuestDBBackup()} disabled={isQuestDBLoading}>
+        <Button onClick={() => triggerQuestDBBackup()} disabled={isQuestDBLoading} className="cursor-pointer">
           {isQuestDBLoading ? "Triggering..." : "Trigger QuestDB Backup"}
         </Button>
-        <Button onClick={() => triggerQdrantDBBackup()} disabled={isQdrantDBLoading}>
+        <Button onClick={() => triggerQdrantDBBackup()} disabled={isQdrantDBLoading} className="cursor-pointer">
           {isQdrantDBLoading ? "Triggering..." : "Trigger QdrantDB Backup"}
         </Button>
       </CardContent>

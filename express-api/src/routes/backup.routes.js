@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticateApiKey } = require('../middleware/auth.middleware');
 const { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup, triggerQdrantDBBackup } = require('../services/backup.service');
-const { listPostgresBackups, listMongoDBBackups, listQuestDBBackups, listQdrantDBBackups, generateDownloadUrl } = require('../services/bucket.service');
+const { listPostgresBackups, listMongoDBBackups, listQuestDBBackups, listQdrantDBBackups, generateDownloadUrl, deleteBackupFile } = require('../services/bucket.service');
 const logger = require('../utils/logger');
 const { scheduleBackupTask, listScheduledTasks, getTaskDetails, cancelScheduledTask } = require('../services/task.service');
 
@@ -300,6 +300,29 @@ router.get('/download', authenticateApiKey, async (req, res, next) => {
   }
 });
 
+/**
+ * DELETE /backup/delete
+ * Delete a backup file from GCS
+ * Query params: ?fileName=postgres/backup-2024-01-01.sql
+ */
+router.delete('/delete', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { fileName } = req.query;
+
+    if (!fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'fileName query parameter is required',
+      });
+    }
+
+    logger.info(`Delete backup request for: ${fileName}`);
+    const result = await deleteBackupFile(fileName);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * GET /backup/health

@@ -155,10 +155,42 @@ async function listQdrantDBBackups() {
   }
 }
 
+/**
+ * Delete a backup file from GCS
+ * @param {string} fileName - The full path to the file in GCS (e.g., 'postgres/backup-2024-01-01.sql')
+ */
+async function deleteBackupFile(fileName) {
+  try {
+    const bucketName = env.GCS_BACKUP_BUCKET;
+    const file = storageClient.bucket(bucketName).file(fileName);
+
+    // Check if file exists
+    const [exists] = await file.exists();
+    if (!exists) {
+      throw new Error(`File not found: ${fileName}`);x
+    }
+
+    // Delete the file
+    await file.delete();
+
+    logger.success(`Deleted backup file: ${fileName}`);
+
+    return {
+      success: true,
+      fileName: fileName,
+      message: 'Backup file deleted successfully',
+    };
+  } catch (error) {
+    logger.error('Error deleting backup file:', error);
+    throw new Error(`Failed to delete backup file: ${error.message}`);
+  }
+}
+
 module.exports = {
   listPostgresBackups,
   listMongoDBBackups,
   listQuestDBBackups,
   listQdrantDBBackups,
   generateDownloadUrl,
+  deleteBackupFile,
 };

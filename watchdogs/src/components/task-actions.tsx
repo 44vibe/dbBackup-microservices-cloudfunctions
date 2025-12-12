@@ -39,7 +39,7 @@ export function TaskActions({ taskId }: { taskId: string }) {
     <div className="flex gap-2">
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="cursor-pointer">
             View
           </Button>
         </DialogTrigger>
@@ -90,6 +90,7 @@ export function TaskActions({ taskId }: { taskId: string }) {
         size="sm"
         onClick={() => mutate()}
         disabled={isPending}
+        className="cursor-pointer"
       >
         {isPending ? "Cancelling..." : "Cancel"}
       </Button>

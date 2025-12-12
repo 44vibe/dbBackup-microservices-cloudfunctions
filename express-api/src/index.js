@@ -43,6 +43,7 @@ app.get('/', (req, res) => {
         triggerQdrantDBBackup: 'POST /backup/qdrantdb (requires x-api-key header)',
         scheduleQdrantDBBackup: 'POST /backup/qdrantdb/schedule (requires x-api-key header and delayMinutes in body)',
         listQdrantDBBackups: 'GET /backup/qdrantdb/list (requires x-api-key header)',
+        deleteQdrantDBBackup: 'DELETE /backup/qdrantdb/:fileName (requires x-api-key header)',
       },
     });
   });
@@ -98,6 +99,7 @@ const startServer = async () => {
       console.log(`   POST http://localhost:${PORT}/backup/qdrantdb`);
       console.log(`   POST http://localhost:${PORT}/backup/qdrantdb/schedule`);
       console.log(`   GET http://localhost:${PORT}/backup/qdrantdb/list`);
+      console.log(`   DELETE http://localhost:${PORT}/backup/qdrantdb/:fileName`);
       console.log('\n✨ Ready to accept requests!\n');
     });
   } catch (error) {
