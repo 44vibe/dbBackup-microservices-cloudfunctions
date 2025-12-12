@@ -6,7 +6,7 @@ import { DatabaseZap } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex max-h-screen overflow-hidden">
       {/* <aside className="w-64 border-r p-4 flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <DatabaseZap className="h-8 w-8" />

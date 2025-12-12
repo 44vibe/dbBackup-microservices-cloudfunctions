@@ -10,14 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Trash2 } from "lucide-react";
 import { api, type BackupFile } from "@/lib/api";
@@ -65,51 +57,53 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
   const files = data?.data || [];
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>File Name</TableHead>
-          <TableHead>Size</TableHead>
-          <TableHead>Last Modified</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {files.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={4} className="text-center text-muted-foreground">
-              No backups found
-            </TableCell>
-          </TableRow>
-        ) : (
-          files.map((file) => (
-            <TableRow key={file.name}>
-              <TableCell className="font-mono text-sm">{file.name}</TableCell>
-              <TableCell>{formatBytes(file.size)}</TableCell>
-              <TableCell>{new Date(file.updated).toLocaleString()}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex gap-2 justify-end">
-                  <Button size="sm" onClick={() => downloadMutate(file.name)} disabled={isDownloading} className="cursor-pointer">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => deleteMutate(file.name)}
-                    disabled={isDeleting}
-                    className="cursor-pointer"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+    <div className="max-h-[280px] overflow-y-auto border rounded-md relative">
+      <table className="w-full border-collapse">
+        <thead className="sticky top-0 z-10 bg-background">
+          <tr className="border-b">
+            <th className="px-4 py-3 text-left text-sm">File Name</th>
+            <th className="px-4 py-3 text-left text-sm">Size</th>
+            <th className="px-4 py-3 text-left text-sm">Last Modified</th>
+            <th className="px-4 py-3 text-right text-sm">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {files.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                No backups found
+              </td>
+            </tr>
+          ) : (
+            files.map((file) => (
+              <tr key={file.name} className="border-b hover:bg-muted/50">
+                <td className="px-4 py-3 font-mono text-sm">{file.name}</td>
+                <td className="px-4 py-3">{formatBytes(file.size)}</td>
+                <td className="px-4 py-3">{new Date(file.updated).toLocaleString()}</td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex gap-2 justify-end">
+                    <Button size="sm" onClick={() => downloadMutate(file.name)} disabled={isDownloading} className="cursor-pointer">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteMutate(file.name)}
+                      disabled={isDeleting}
+                      className="cursor-pointer"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
