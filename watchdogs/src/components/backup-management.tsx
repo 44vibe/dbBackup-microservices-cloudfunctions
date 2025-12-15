@@ -1,15 +1,9 @@
 "use client";
 
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Trash2 } from "lucide-react";
 import { api, type BackupFile } from "@/lib/api";
@@ -24,6 +18,12 @@ function formatBytes(bytes: number): string {
 }
 
 function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantdb" }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["backups", db],
     queryFn: () => db === "postgres" ? api.backup.listPostgresBackups() : db === "mongodb" ? api.backup.listMongoDBBackups() : db === "questdb" ? api.backup.listQuestDBBackups() : api.backup.listQdrantDBBackups(),
@@ -57,33 +57,33 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
   const files = data?.data || [];
 
   return (
-    <div className="max-h-[280px] overflow-y-auto border rounded-md relative">
-      <table className="w-full border-collapse">
-        <thead className="sticky top-0 z-10 bg-background">
-          <tr className="border-b">
-            <th className="px-4 py-3 text-left text-sm">File Name</th>
-            <th className="px-4 py-3 text-left text-sm">Size</th>
-            <th className="px-4 py-3 text-left text-sm">Last Modified</th>
-            <th className="px-4 py-3 text-right text-sm">Actions</th>
+    <div className="h-full overflow-y-auto overflow-x-auto border rounded-md relative bg-card">
+      <table className="w-full border-collapse min-w-[640px]">
+        <thead className="sticky top-0 z-10 bg-card border-b">
+          <tr>
+            <th className="px-2 py-1 text-left text-xs font-medium bg-card">File Name</th>
+            <th className="px-2 py-1 text-left text-xs font-medium bg-card">Size</th>
+            <th className="px-2 py-1 text-left text-xs font-medium bg-card">Last Modified</th>
+            <th className="px-2 py-1 text-right text-xs font-medium bg-card">Actions</th>
           </tr>
         </thead>
         <tbody>
           {files.length === 0 ? (
             <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+              <td colSpan={4} className="px-2 py-4 text-center text-muted-foreground text-sm">
                 No backups found
               </td>
             </tr>
           ) : (
             files.map((file) => (
-              <tr key={file.name} className="border-b hover:bg-muted/50">
-                <td className="px-4 py-3 font-mono text-sm">{file.name}</td>
-                <td className="px-4 py-3">{formatBytes(file.size)}</td>
-                <td className="px-4 py-3">{new Date(file.updated).toLocaleString()}</td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex gap-2 justify-end">
-                    <Button size="sm" onClick={() => downloadMutate(file.name)} disabled={isDownloading} className="cursor-pointer">
-                      <Download className="mr-2 h-4 w-4" />
+              <tr key={file.name} className="border-b last:border-b-0 hover:bg-muted/50">
+                <td className="px-2 py-1 font-mono text-xs break-all">{file.name}</td>
+                <td className="px-2 py-1 whitespace-nowrap text-xs">{formatBytes(file.size)}</td>
+                <td className="px-2 py-1 whitespace-nowrap text-xs">{mounted ? new Date(file.updated).toLocaleString() : new Date(file.updated).toISOString()}</td>
+                <td className="px-2 py-1">
+                  <div className="flex flex-row gap-1 justify-end">
+                    <Button size="sm" onClick={() => downloadMutate(file.name)} disabled={isDownloading} className="cursor-pointer whitespace-nowrap">
+                      <Download className="mr-1 h-3 w-3" />
                       Download
                     </Button>
                     <Button
@@ -91,9 +91,9 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
                       variant="destructive"
                       onClick={() => deleteMutate(file.name)}
                       disabled={isDeleting}
-                      className="cursor-pointer"
+                      className="cursor-pointer whitespace-nowrap"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 className="mr-1 h-3 w-3" />
                       Delete
                     </Button>
                   </div>
@@ -109,35 +109,35 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
 
 export function BackupManagement() {
   return (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle>Backup Management</CardTitle>
-        <CardDescription>
+    <div className="h-full flex flex-col border rounded-lg bg-card">
+      <div className="shrink-0 p-3 border-b">
+        <h3 className="text-sm font-semibold">Backup Management</h3>
+        <p className="text-xs text-muted-foreground">
           List and download your database backups.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="postgres">
-          <TabsList>
-            <TabsTrigger value="postgres">PostgreSQL</TabsTrigger>
-            <TabsTrigger value="mongodb">MongoDB</TabsTrigger>
-            <TabsTrigger value="questdb">QuestDB</TabsTrigger>
-            <TabsTrigger value="qdrantdb">QdrantDB</TabsTrigger>
+        </p>
+      </div>
+      <div className="flex-1 overflow-hidden flex flex-col p-3">
+        <Tabs defaultValue="postgres" className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 shrink-0">
+            <TabsTrigger value="postgres" className="text-xs">PostgreSQL</TabsTrigger>
+            <TabsTrigger value="mongodb" className="text-xs">MongoDB</TabsTrigger>
+            <TabsTrigger value="questdb" className="text-xs">QuestDB</TabsTrigger>
+            <TabsTrigger value="qdrantdb" className="text-xs">QdrantDB</TabsTrigger>
           </TabsList>
-          <TabsContent value="postgres">
+          <TabsContent value="postgres" className="flex-1 overflow-hidden mt-2">
             <BackupTable db="postgres" />
           </TabsContent>
-          <TabsContent value="mongodb">
+          <TabsContent value="mongodb" className="flex-1 overflow-hidden mt-2">
             <BackupTable db="mongodb" />
           </TabsContent>
-          <TabsContent value="questdb">
+          <TabsContent value="questdb" className="flex-1 overflow-hidden mt-2">
             <BackupTable db="questdb" />
           </TabsContent>
-          <TabsContent value="qdrantdb">
+          <TabsContent value="qdrantdb" className="flex-1 overflow-hidden mt-2">
             <BackupTable db="qdrantdb" />
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
