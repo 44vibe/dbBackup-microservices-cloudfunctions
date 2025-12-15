@@ -16,7 +16,7 @@ async function scheduleBackupTask(database, delayMinutes) {
         const topicName = database === 'postgres' ? 'postgres-backup-trigger' :
                       database === 'mongodb' ? 'mongodb-backup-trigger' :
                       database === 'questdb' ? 'questdb-backup-trigger' :
-                      'qdrantdb-backup-trigger';
+                      'qdrant-backup-trigger';
 
         const message = {
             action: 'backup',
