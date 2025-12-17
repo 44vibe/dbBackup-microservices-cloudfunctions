@@ -1,4 +1,4 @@
-const {z} = require('zod');
+const {z, json} = require('zod');
 require('dotenv').config();
 
 
@@ -23,7 +23,12 @@ function validateEnv() {
         return env;
     } catch (error) {
         console.error('❌ Environment variables validation failed');
-        console.error(error.issues || error);
+        console.error(JSON.stringify(error.flatten().fieldErrors,null,2));
+
+        error.errors.forEach(err => {
+            const path = err.path.join('.');
+            console.log(`❌ ${path}: ${err.message}`);
+        })
         process.exit(1);
     }
 }

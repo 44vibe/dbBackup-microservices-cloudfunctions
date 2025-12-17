@@ -27,6 +27,7 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["backups", db],
     queryFn: () => db === "postgres" ? api.backup.listPostgresBackups() : db === "mongodb" ? api.backup.listMongoDBBackups() : db === "questdb" ? api.backup.listQuestDBBackups() : api.backup.listQdrantDBBackups(),
+    staleTime: 1000 * 60 * 20, // 20 seconds
   });
 
   const { mutate: downloadMutate, isPending: isDownloading } = useMutation({

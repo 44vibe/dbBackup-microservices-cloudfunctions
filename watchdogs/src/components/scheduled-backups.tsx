@@ -16,6 +16,7 @@ export function ScheduledBackups() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["tasks"],
     queryFn: api.task.listTasks,
+    staleTime: 1000 * 60 * 20, // 20 minutes
   });
 
   const tasks = data?.data || [];

@@ -1,15 +1,24 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { api, triggerQdrantDBBackup, triggerQuestDBBackup } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export function BackupTriggers() {
+  
+  const queryClient = useQueryClient();
+
+
   const { mutate: triggerPostgresBackup, isPending: isPGLoading } = useMutation({
     mutationFn: api.backup.triggerPostgresBackup,
     onSuccess: (data) => {
       toast.success(data.message || "PostgreSQL backup triggered successfully!");
+      // Delay refetch by 15 seconds to allow Cloud Function to complete backup
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["backups", "postgres"] });
+        queryClient.refetchQueries({ queryKey: ["backups", "postgres"] });
+      }, 15000);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -20,6 +29,11 @@ export function BackupTriggers() {
     mutationFn: api.backup.triggerMongoDBBackup,
     onSuccess: (data) => {
       toast.success(data.message || "MongoDB backup triggered successfully!");
+      // Delay refetch by 15 seconds to allow Cloud Function to complete backup
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["backups", "mongodb"] });
+        queryClient.refetchQueries({ queryKey: ["backups", "mongodb"] });
+      }, 15000);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -30,6 +44,11 @@ export function BackupTriggers() {
     mutationFn: api.backup.triggerQuestDBBackup,
     onSuccess: (data) => {
       toast.success(data.message || "QuestDB backup triggered successfully!");
+      // Delay refetch by 15 seconds to allow Cloud Function to complete backup
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["backups", "questdb"] });
+        queryClient.refetchQueries({ queryKey: ["backups", "questdb"] });
+      }, 15000);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -40,6 +59,11 @@ export function BackupTriggers() {
     mutationFn: api.backup.triggerQdrantDBBackup,
     onSuccess: (data) => {
       toast.success(data.message || "QdrantDB backup triggered successfully!");
+      // Delay refetch by 15 seconds to allow Cloud Function to complete backup
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["backups", "qdrantdb"] });
+        queryClient.refetchQueries({ queryKey: ["backups", "qdrantdb"] });
+      }, 15000);
     },
     onError: (error) => {
       toast.error(error.message);
