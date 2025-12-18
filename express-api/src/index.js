@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const { env } = require('./config/env');
 const { testConnection } = require('./config/pubsub.config');
 const { errorHandler, notFoundHandler } = require('./middleware/error.middleware');
@@ -10,6 +11,16 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const allowedOrigins = [
+  'http://localhost:3001',  // Local development
+  process.env.FRONTEND_URL   // Cloud Run production (you'll set this)
+].filter(Boolean);  // Remove undefined values
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 
 

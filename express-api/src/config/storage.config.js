@@ -7,7 +7,9 @@ const logger = require('../utils/logger');
  */
 const storageClient = new Storage({
   projectId: env.GCP_PROJECT_ID,
-  keyFilename: env.GOOGLE_APPLICATION_CREDENTIALS,
+  ...(env.GOOGLE_APPLICATION_CREDENTIALS && {
+    keyFilename: env.GOOGLE_APPLICATION_CREDENTIALS
+  })
 });
 
 /**

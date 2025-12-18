@@ -1,14 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/backup/:path*",
-        destination: "http://localhost:3000/backup/:path*",
-      },
-    ];
-  },
+  // Direct API calls with CORS - no proxy needed
 };
 
 export default nextConfig;

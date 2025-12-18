@@ -3,7 +3,9 @@
  * Simple functions to call the Express backend API
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Direct API calls with CORS
+// Local: http://localhost:3000 | Production: Set NEXT_PUBLIC_API_URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
 
 // Helper to get headers with API key for all requests

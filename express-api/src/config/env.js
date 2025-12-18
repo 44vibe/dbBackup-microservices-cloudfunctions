@@ -6,7 +6,7 @@ const envSchema = z.object({
 PORT: z.coerce.number().default(3000),
 API_KEY: z.string().min(20, 'API_KEY must be at least 20 characters'),
 GCP_PROJECT_ID: z.string().min(1, 'GCP_PROJECT_ID is required'),
-GOOGLE_APPLICATION_CREDENTIALS: z.string().min(1, 'GOOGLE_APPLICATION_CREDENTIALS path is required'),
+GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(),
 POSTGRES_TOPIC: z.string().min(1, 'POSTGRES_TOPIC is required'),
 MONGODB_TOPIC: z.string().min(1, 'MONGODB_TOPIC is required'),
 QUESTDB_TOPIC: z.string().min(1, 'QUESTDB_TOPIC is required'),
