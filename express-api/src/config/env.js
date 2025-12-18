@@ -14,6 +14,7 @@ QDRANTDB_TOPIC: z.string().min(1, 'QDRANTDB_TOPIC is required'),
 CLOUD_TASKS_QUEUE: z.string().optional(),
 CLOUD_TASKS_LOCATION: z.string().default('us-central1'),
 GCS_BACKUP_BUCKET: z.string().min(1, 'GCS_BACKUP_BUCKET is required'),
+FRONTEND_URL: z.string().optional(),
 });
 
 function validateEnv() {

@@ -86,8 +86,8 @@ const startServer = async () => {
     await testConnection();
 
     // Start Express server
-    app.listen(env.PORT, () => {
-      logger.success(`Server running on port ${env.PORT}`);
+    app.listen(PORT, () => {
+      logger.success(`Server running on port ${PORT}`);
       logger.info(`Environment: ${env.NODE_ENV}`);
       logger.info(`Project ID: ${env.GCP_PROJECT_ID}`);
       logger.info(`🔗 API: http://localhost:${PORT}`);
