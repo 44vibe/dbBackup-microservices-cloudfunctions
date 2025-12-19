@@ -78,17 +78,19 @@ export function BackupTriggers() {
         <p className="text-xs text-muted-foreground">Trigger an immediate backup for your databases.</p>
       </div>
       <div className="flex flex-col sm:flex-row flex-wrap gap-2 p-3">
-        <Button onClick={() => triggerPostgresBackup()} disabled={isPGLoading} className="cursor-pointer flex-1 sm:flex-none" size="sm">
-          {isPGLoading ? "Triggering..." : "Trigger PostgreSQL Backup"}
+        <Button onClick={() => triggerPostgresBackup()} disabled={isPGLoading} 
+        className="cursor-pointer flex-1 sm:flex-none text-xs md:text-sm p-1 text-center" size="sm">
+          {isPGLoading ? "Triggering..." : "PostgreSQL Backup"}
         </Button>
-        <Button onClick={() => triggerMongoBackup()} disabled={isMongoLoading} className="cursor-pointer flex-1 sm:flex-none" size="sm">
-          {isMongoLoading ? "Triggering..." : "Trigger MongoDB Backup"}
+        <Button onClick={() => triggerMongoBackup()} disabled={isMongoLoading} 
+        className="cursor-pointer flex-1 sm:flex-none text-xs md:text-sm p-1 text-center" size="sm">
+          {isMongoLoading ? "Triggering..." : "MongoDB Backup"}
         </Button>
-        <Button onClick={() => triggerQuestDBBackup()} disabled={isQuestDBLoading} className="cursor-pointer flex-1 sm:flex-none" size="sm">
-          {isQuestDBLoading ? "Triggering..." : "Trigger QuestDB Backup"}
+        <Button onClick={() => triggerQuestDBBackup()} disabled={isQuestDBLoading} className="cursor-pointer flex-1 sm:flex-none text-xs md:text-sm p-1 text-center" size="sm">
+          {isQuestDBLoading ? "Triggering..." : "QuestDB Backup"}
         </Button>
-        <Button onClick={() => triggerQdrantDBBackup()} disabled={isQdrantDBLoading} className="cursor-pointer flex-1 sm:flex-none" size="sm">
-          {isQdrantDBLoading ? "Triggering..." : "Trigger QdrantDB Backup"}
+        <Button onClick={() => triggerQdrantDBBackup()} disabled={isQdrantDBLoading} className="cursor-pointer flex-1 sm:flex-none text-xs md:text-sm p-1 text-center" size="sm">
+          {isQdrantDBLoading ? "Triggering..." : "QdrantDB Backup"}
         </Button>
       </div>
     </div>

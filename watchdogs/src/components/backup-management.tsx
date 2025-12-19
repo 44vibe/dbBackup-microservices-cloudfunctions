@@ -119,7 +119,7 @@ export function BackupManagement() {
       </div>
       <div className="flex-1 overflow-hidden flex flex-col p-3">
         <Tabs defaultValue="postgres" className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 shrink-0">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 shrink-0 h-auto">
             <TabsTrigger value="postgres" className="text-xs">PostgreSQL</TabsTrigger>
             <TabsTrigger value="mongodb" className="text-xs">MongoDB</TabsTrigger>
             <TabsTrigger value="questdb" className="text-xs">QuestDB</TabsTrigger>
