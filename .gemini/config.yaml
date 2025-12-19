@@ -1,0 +1,290 @@
+# Gemini Code Review Configuration
+# Tailored for GCP + Next.js + Express.js Stack
+# Learning-Focused: Errors block, Warnings educate, Info guides
+
+version: 1.0
+
+# ===================================
+# WHEN TO TRIGGER REVIEWS
+# ===================================
+review:
+  triggers:
+    - pull_request      # Review when PR is created/updated
+    - push              # Review on direct pushes to protected branches
+  
+  # Branches that require review
+  branches:
+    - main
+    - master
+    - develop
+    - staging
+    - production
+    - "feature/*"       # All feature branches
+    - "hotfix/*"        # All hotfix branches
+
+# ===================================
+# WHAT FILES TO REVIEW
+# ===================================
+  include:
+    # Frontend (Next.js)
+    - "watchdogs/**/*.ts"
+    - "watchdogs/**/*.tsx"
+    - "watchdogs/**/*.js"
+    - "watchdogs/**/*.jsx"
+    
+    # Backend (Express)
+    - "express-api/**/*.js"
+    - "express-api/**/*.ts"
+    
+    # Cloud Functions
+    - "cloud-functions/**/*.js"
+    - "cloud-functions/**/*.ts"
+    
+    # Configuration files
+    - "**/*.json"
+    - "**/*.yaml"
+    - "**/*.yml"
+    - "**/Dockerfile"
+    - "**/.env.example"
+  
+  exclude:
+    # Dependencies
+    - "**/node_modules/**"
+    - "**/package-lock.json"
+    - "**/yarn.lock"
+    - "**/pnpm-lock.yaml"
+    
+    # Build outputs
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/.next/**"
+    - "**/out/**"
+    
+    # Generated files
+    - "**/*.min.js"
+    - "**/*.bundle.js"
+    - "**/*.generated.*"
+    
+    # Cache and temp
+    - "**/.cache/**"
+    - "**/tmp/**"
+    - "**/.env"
+    - "**/.env.local"
+
+# ===================================
+# CODE REVIEW FOCUS AREAS
+# ===================================
+checks:
+  security:
+    enabled: true
+    severity: error        # Security issues BLOCK merge
+    focus:
+      - secrets_exposure   # API keys, tokens, credentials in code
+      - sql_injection      # Unsafe database queries
+      - xss_vulnerabilities # Cross-site scripting risks
+      - unsafe_eval        # Avoid eval() and Function constructor
+      - hardcoded_secrets  # No hardcoded passwords/keys
+  
+  code_quality:
+    enabled: true
+    severity: warning      # Quality issues get comments but don't block
+    focus:
+      - complexity         # Functions too complex (cyclomatic complexity)
+      - duplication        # DRY principle violations
+      - dead_code          # Unused variables, imports, functions
+      - magic_numbers      # Use constants instead of hardcoded values
+  
+  best_practices:
+    enabled: true
+    severity: warning
+    focus:
+      - async_await        # Proper promise handling
+      - error_handling     # Try-catch blocks, error boundaries
+      - gcp_patterns       # Proper GCP client initialization
+      - next_patterns      # Next.js App Router conventions
+      - express_patterns   # Express middleware patterns
+  
+  performance:
+    enabled: true
+    severity: info         # Performance tips guide improvements
+    focus:
+      - unnecessary_renders # React re-render optimization
+      - n_plus_one         # Database query optimization
+      - large_bundles      # Bundle size warnings
+      - memory_leaks       # Event listener cleanup
+  
+  testing:
+    enabled: true
+    severity: warning
+    focus:
+      - missing_tests      # New functions without tests
+      - test_coverage      # Coverage below threshold
+      - test_quality       # Meaningful assertions
+  
+  documentation:
+    enabled: true
+    severity: info
+    focus:
+      - missing_jsdoc      # Public functions need documentation
+      - unclear_comments   # Confusing or outdated comments
+      - readme_updates     # Changes need README updates
+  
+  gcp_specific:
+    enabled: true
+    severity: warning
+    focus:
+      - credential_handling # Proper use of GOOGLE_APPLICATION_CREDENTIALS
+      - pub_sub_patterns   # Message structure and error handling
+      - cloud_run_config   # Environment variable patterns
+      - secret_manager     # Proper secret retrieval
+      - storage_operations # GCS error handling and cleanup
+
+# ===================================
+# SEVERITY CONFIGURATION
+# ===================================
+severity:
+  error:
+    block_merge: true    # Errors prevent PR merge
+    require_fix: true
+    examples:
+      - "Security vulnerabilities"
+      - "Syntax errors"
+      - "Breaking changes without migration"
+      - "Exposed secrets or API keys"
+      - "Critical bugs"
+  
+  warning:
+    block_merge: false   # Warnings allow merge but expect fixes
+    require_acknowledgement: true
+    examples:
+      - "Code quality issues"
+      - "Missing error handling"
+      - "Best practice violations"
+      - "Missing tests for new code"
+  
+  info:
+    block_merge: false   # Info is educational only
+    require_acknowledgement: false
+    examples:
+      - "Performance optimization tips"
+      - "Alternative approaches"
+      - "Documentation suggestions"
+      - "Code style improvements"
+
+# ===================================
+# CUSTOM RULES FOR YOUR STACK
+# ===================================
+rules:
+  # General code quality
+  max_function_lines: 100          # Keep functions focused and readable
+  max_file_lines: 400              # Large files are hard to maintain
+  max_function_parameters: 4       # Use objects for more parameters
+  cyclomatic_complexity: 10        # Complexity threshold
+  
+  # TypeScript/JavaScript specific
+  require_strict_null_checks: true # TypeScript strict mode
+  no_any_type: true               # Avoid 'any' in TypeScript
+  prefer_const: true              # Use const over let when possible
+  no_var: true                    # Never use 'var'
+  
+  # Testing requirements
+  require_tests: true             # New features need tests
+  min_test_coverage: 70           # Minimum 70% coverage for new code
+  require_unit_tests: true        # Business logic needs unit tests
+  
+  # Naming conventions
+  enforce_naming_conventions: true
+  naming:
+    components: "PascalCase"      # React components
+    functions: "camelCase"        # Functions and methods
+    constants: "UPPER_SNAKE_CASE" # Constants
+    files: "kebab-case"           # File names
+  
+  # Next.js specific
+  nextjs:
+    prefer_app_router: true       # Use App Router over Pages Router
+    use_typescript: true          # Enforce TypeScript
+    optimize_images: true         # Use next/image component
+    proper_metadata: true         # SEO metadata required
+  
+  # Express.js specific
+  express:
+    use_middleware_pattern: true  # Consistent middleware structure
+    validate_input: true          # All inputs must be validated
+    proper_error_handling: true   # Error middleware required
+  
+  # GCP specific
+  gcp:
+    conditional_credentials: true # Support both local and Cloud Run
+    proper_error_logging: true    # Use Cloud Logging properly
+    cleanup_resources: true       # Clean up temp files and connections
+
+# ===================================
+# COMMENT BEHAVIOR
+# ===================================
+comments:
+  inline: true                    # Add comments directly on code lines
+  summary: true                   # Provide PR-level summary
+  auto_approve: false             # Never auto-approve (human review needed)
+  
+  # Comment style
+  style:
+    constructive: true            # Focus on learning and improvement
+    include_examples: true        # Show good vs bad examples
+    explain_why: true            # Always explain the reasoning
+    suggest_fixes: true          # Provide actionable solutions
+  
+  # Severity labels in comments
+  use_labels: true
+  labels:
+    error: "🚨 ERROR"
+    warning: "⚠️ WARNING"  
+    info: "💡 INFO"
+    suggestion: "✨ SUGGESTION"
+
+# ===================================
+# LEARNING MODE (Junior Developer Focus)
+# ===================================
+learning_mode:
+  enabled: true
+  features:
+    - explain_concepts           # Explain why rule matters
+    - link_documentation        # Link to official docs
+    - progressive_strictness    # Start lenient, increase over time
+    - positive_reinforcement    # Praise good patterns
+  
+  # Links to documentation
+  docs:
+    nextjs: "https://nextjs.org/docs"
+    react: "https://react.dev"
+    typescript: "https://www.typescriptlang.org/docs"
+    gcp: "https://cloud.google.com/docs"
+    node: "https://nodejs.org/docs"
+
+# ===================================
+# INTEGRATION SETTINGS
+# ===================================
+integration:
+  # GitHub specific
+  github:
+    require_review_approval: true
+    min_approvals: 1
+    dismiss_stale_reviews: true
+    
+  # Notification preferences
+  notifications:
+    on_error: true               # Notify on errors
+    on_warning: false            # Don't spam on warnings
+    on_completion: true          # Notify when review completes
+
+# ===================================
+# PROGRESSIVE LEARNING TIMELINE
+# ===================================
+# Week 1-2: Focus on ERRORS only (security, breaking changes)
+# Week 3-4: Add WARNINGS (code quality, missing tests)
+# Week 5+: Full review mode (errors + warnings + info)
+#
+# Adjust severity levels as the developer improves:
+# - Start: error = block, warning = allow, info = allow
+# - After 1 month: error = block, warning = must acknowledge, info = allow
+# - After 3 months: All severities active with full enforcement
