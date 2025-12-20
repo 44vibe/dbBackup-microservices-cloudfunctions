@@ -4,16 +4,18 @@ steps:
     args:
       - 'build'
       - '--build-arg'
-      - 'NEXT_PUBLIC_API_URL=https://backup-api-27617992020.us-central1.run.app'
+      - 'NEXT_PUBLIC_API_URL=${_NEXT_PUBLIC_API_URL}'
       - '--build-arg'
-      - 'NEXT_PUBLIC_API_KEY=a7f3e9d2c1b8a4f6e8d9c2b5a7f3e9d2c1b8a4f6e8d9c2b5a7f3e9d2c1b8a4f6'
+      - 'NEXT_PUBLIC_API_KEY=${_NEXT_PUBLIC_API_KEY}'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/watchdogs-frontend'
+      - 'gcr.io/$PROJECT_ID/watchdogs-frontend:${_IMAGE_TAG}'
       - '.'
 
   # Push image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/watchdogs-frontend']
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/watchdogs-frontend:${_IMAGE_TAG}'
 
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -23,7 +25,7 @@ steps:
       - 'deploy'
       - 'watchdogs-frontend'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/watchdogs-frontend'
+      - 'gcr.io/$PROJECT_ID/watchdogs-frontend:${_IMAGE_TAG}'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -31,4 +33,13 @@ steps:
       - '--allow-unauthenticated'
 
 images:
-  - 'gcr.io/$PROJECT_ID/watchdogs-frontend'
+  - 'gcr.io/$PROJECT_ID/watchdogs-frontend:${_IMAGE_TAG}'
+
+# Default substitution values (can be overridden by GitHub Actions)
+substitutions:
+  _NEXT_PUBLIC_API_URL: 'https://backup-api-27617992020.us-central1.run.app'
+  _NEXT_PUBLIC_API_KEY: 'a7f3e9d2c1b8a4f6e8d9c2b5a7f3e9d2c1b8a4f6e8d9c2b5a7f3e9d2c1b8a4f6'
+  _IMAGE_TAG: 'latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
