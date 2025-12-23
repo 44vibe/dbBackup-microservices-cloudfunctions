@@ -1,17 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ScheduleBackupForm } from "./schedule-backup-form";
 import { TaskActions } from "./task-actions";
 import { api, type ScheduledTask } from "@/lib/api";
 
 export function ScheduledBackups() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted] = useState(true);
   
   const { data, isLoading, error } = useQuery({
     queryKey: ["tasks"],

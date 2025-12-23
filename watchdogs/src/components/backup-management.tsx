@@ -1,12 +1,12 @@
 "use client";
 
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Trash2 } from "lucide-react";
-import { api, type BackupFile } from "@/lib/api";
+import { api } from "@/lib/api";
 
 // Helper function to format file size
 function formatBytes(bytes: number): string {
@@ -18,11 +18,7 @@ function formatBytes(bytes: number): string {
 }
 
 function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantdb" }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted] = useState(true);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["backups", db],
