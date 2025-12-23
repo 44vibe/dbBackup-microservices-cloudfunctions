@@ -105,7 +105,7 @@ export function ScheduleBackupForm() {
 
     if (!result.success) {
       const formattedErrors: { dbType?: string; scheduleTime?: string } = {};
-      result.error.issues.forEach((err: any) => {
+      result.error.issues.forEach((err) => {
         if (err.path[0] === "dbType") {
           formattedErrors.dbType = err.message;
         }
@@ -133,7 +133,7 @@ export function ScheduleBackupForm() {
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <Select onValueChange={(value) => setDbType(value as any)} value={dbType}>
+          <Select onValueChange={(value) => setDbType(value as "postgres" | "mongodb" | "questdb" | "qdrantdb")} value={dbType}>
             <SelectTrigger>
               <SelectValue placeholder="Select a database" />
             </SelectTrigger>
