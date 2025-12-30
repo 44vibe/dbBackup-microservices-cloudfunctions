@@ -93,6 +93,28 @@ export interface TxtRecordResponse {
   };
 }
 
+export interface UpdateTxtRecordRequest {
+  domain: string;
+  recordId: string;
+  content: string;
+  ttl?: number;
+  zoneId?: string;
+}
+
+// Update existing TXT record via Cloudflare API
+export async function updateTxtRecord(request: UpdateTxtRecordRequest): Promise<TxtRecordResponse> {
+  const response = await fetch(`${API_URL}/backup/domain/txt-record`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update TXT record');
+  }
+  return response.json();
+}
+
 export interface DomainVerificationResult {
   verified: boolean;
   domain: string;
@@ -407,6 +429,7 @@ export const api = {
     list: listCloudflareZones,
     listRecords: listDnsRecords,
     createTxtRecord: createTxtRecord,
+    updateTxtRecord: updateTxtRecord,
     removeTxtRecord: removeDomainTxtRecord,
   },
   health: {

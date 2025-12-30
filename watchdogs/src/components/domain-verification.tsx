@@ -8,21 +8,25 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   listCloudflareZones,
   listDnsRecords,
   createTxtRecord,
+  updateTxtRecord,
   removeDomainTxtRecord,
   type CloudflareZone,
   type DnsRecord,
   type CreateTxtRecordRequest,
+  type UpdateTxtRecordRequest,
 } from "@/lib/api";
 import {
   Globe,
   Search,
   Plus,
   Trash2,
+  Edit,
   Calendar,
   ExternalLink,
 } from "lucide-react";
@@ -32,11 +36,16 @@ export function DomainVerification() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomain, setSelectedDomain] = useState<CloudflareZone | null>(null);
   const [showDnsModal, setShowDnsModal] = useState(false);
+  const [showEditRecordModal, setShowEditRecordModal] = useState(false);
 
   // Form state
   const [txtName, setTxtName] = useState("@");
   const [txtContent, setTxtContent] = useState("");
   const [txtTtl, setTxtTtl] = useState("120");
+
+  // Edit state
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+  const [editingRecord, setEditingRecord] = useState<DnsRecord | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -73,6 +82,27 @@ export function DomainVerification() {
       setTxtName("@");
       setTxtContent("");
       setTxtTtl("120");
+      // Refetch DNS records if modal is open
+      if (showDnsModal) {
+        refetchDns();
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed: ${error.message}`);
+    },
+  });
+
+  const updateTxt = useMutation({
+    mutationFn: (request: UpdateTxtRecordRequest) => updateTxtRecord(request),
+    onSuccess: () => {
+      toast.success("TXT record updated!");
+      // Reset form
+      setTxtName("@");
+      setTxtContent("");
+      setTxtTtl("120");
+      setEditingRecordId(null);
+      setEditingRecord(null);
+      setShowEditRecordModal(false);
       // Refetch DNS records if modal is open
       if (showDnsModal) {
         refetchDns();
@@ -137,6 +167,30 @@ export function DomainVerification() {
         recordId,
       });
     }
+  };
+
+  const handleEditRecord = (record: DnsRecord) => {
+    setEditingRecord(record);
+    setTxtContent(record.content);
+    setTxtTtl(record.ttl.toString());
+    setShowEditRecordModal(true);
+  };
+
+  const handleUpdateTxtRecord = () => {
+    if (!selectedDomain || !editingRecord) return;
+
+    if (!txtContent.trim()) {
+      toast.error("Content is required");
+      return;
+    }
+
+    updateTxt.mutate({
+      domain: selectedDomain.name,
+      recordId: editingRecord.id,
+      content: txtContent,
+      ttl: parseInt(txtTtl) || 120,
+      zoneId: selectedDomain.id,
+    });
   };
 
   return (
@@ -285,18 +339,29 @@ export function DomainVerification() {
                   {/* TTL Field */}
                   <div className="space-y-2">
                     <Label htmlFor="txt-ttl" className="text-xs">
-                      TTL (seconds)
+                      TTL
                     </Label>
-                    <Input
-                      id="txt-ttl"
-                      type="number"
-                      placeholder="120"
-                      value={txtTtl}
-                      onChange={(e) => setTxtTtl(e.target.value)}
-                      className="text-sm"
-                    />
+                    <Select value={txtTtl} onValueChange={setTxtTtl}>
+                      <SelectTrigger id="txt-ttl" className="text-sm w-full">
+                        <SelectValue placeholder="Select TTL" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Auto</SelectItem>
+                        <SelectItem value="60">1 minute</SelectItem>
+                        <SelectItem value="120">2 minutes</SelectItem>
+                        <SelectItem value="300">5 minutes</SelectItem>
+                        <SelectItem value="600">10 minutes</SelectItem>
+                        <SelectItem value="900">15 minutes</SelectItem>
+                        <SelectItem value="1800">30 minutes</SelectItem>
+                        <SelectItem value="3600">1 hour</SelectItem>
+                        <SelectItem value="7200">2 hours</SelectItem>
+                        <SelectItem value="18000">5 hours</SelectItem>
+                        <SelectItem value="43200">12 hours</SelectItem>
+                        <SelectItem value="86400">1 day</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <p className="text-xs text-muted-foreground">
-                      Lower values propagate faster (default: 120 = 2 minutes)
+                      Lower values propagate faster. Auto lets Cloudflare decide.
                     </p>
                   </div>
 
@@ -345,6 +410,7 @@ export function DomainVerification() {
                         TTL: {record.ttl === 1 ? "Auto" : `${record.ttl}s`}
                       </span>
                       {record.type === "TXT" && (
+                        <>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -353,6 +419,15 @@ export function DomainVerification() {
                         >
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEditRecord(record)}
+                          className="h-6 px-2"
+                        >
+                          <Edit className="h-3 w-3 text-primary" />
+                        </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -378,6 +453,101 @@ export function DomainVerification() {
                 </div>
               ))
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Record Modal */}
+      <Dialog open={showEditRecordModal} onOpenChange={setShowEditRecordModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Edit TXT Record</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto">
+            <CardContent className="space-y-4">
+              {editingRecord ? (
+                <>
+                  {/* Name Field (Read-only) */}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-txt-name" className="text-xs">
+                      Name
+                    </Label>
+                    <Input
+                      id="edit-txt-name"
+                      type="text"
+                      value={editingRecord.name}
+                      disabled
+                      className="text-sm bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Record name cannot be changed
+                    </p>
+                  </div>
+
+                  {/* Content Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-txt-content" className="text-xs">
+                      Content <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="edit-txt-content"
+                      type="text"
+                      placeholder="Enter TXT record value"
+                      value={txtContent}
+                      onChange={(e) => setTxtContent(e.target.value)}
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      The TXT record value (e.g., verification code, SPF, DKIM)
+                    </p>
+                  </div>
+
+                  {/* TTL Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-txt-ttl" className="text-xs">
+                      TTL
+                    </Label>
+                    <Select value={txtTtl} onValueChange={setTxtTtl}>
+                      <SelectTrigger id="edit-txt-ttl" className="text-sm w-full">
+                        <SelectValue placeholder="Select TTL" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Auto</SelectItem>
+                        <SelectItem value="60">1 minute</SelectItem>
+                        <SelectItem value="120">2 minutes</SelectItem>
+                        <SelectItem value="300">5 minutes</SelectItem>
+                        <SelectItem value="600">10 minutes</SelectItem>
+                        <SelectItem value="900">15 minutes</SelectItem>
+                        <SelectItem value="1800">30 minutes</SelectItem>
+                        <SelectItem value="3600">1 hour</SelectItem>
+                        <SelectItem value="7200">2 hours</SelectItem>
+                        <SelectItem value="18000">5 hours</SelectItem>
+                        <SelectItem value="43200">12 hours</SelectItem>
+                        <SelectItem value="86400">1 day</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Lower values propagate faster. Auto lets Cloudflare decide.
+                    </p>
+                  </div>
+
+                  {/* Update Button */}
+                  <Button
+                    onClick={handleUpdateTxtRecord}
+                    disabled={updateTxt.isPending || !txtContent.trim()}
+                    className="w-full"
+                    size="sm"
+                  >
+                    <Edit className="h-3 w-3 mr-2" />
+                    {updateTxt.isPending ? "Updating..." : "Update TXT Record"}
+                  </Button>
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  No record selected for editing
+                </div>
+              )}
+            </CardContent>
           </div>
         </DialogContent>
       </Dialog>

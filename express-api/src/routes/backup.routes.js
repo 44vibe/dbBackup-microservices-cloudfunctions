@@ -5,7 +5,7 @@ const { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup, trigg
 const { listPostgresBackups, listMongoDBBackups, listQuestDBBackups, listQdrantDBBackups, generateDownloadUrl, deleteBackupFile } = require('../services/bucket.service');
 const logger = require('../utils/logger');
 const { scheduleBackupTask, listScheduledTasks, getTaskDetails, cancelScheduledTask } = require('../services/task.service');
-const { generateDomainVerificationToken, insertDomainTxtRecord, verifyDomain, removeDomainTxtRecord, listCloudflareZones, listDnsRecords } = require('../services/domain.service');
+const { generateDomainVerificationToken, insertDomainTxtRecord, updateDomainTxtRecord, verifyDomain, removeDomainTxtRecord, listCloudflareZones, listDnsRecords } = require('../services/domain.service');
 
 /**
  * POST /backup/postgres
@@ -398,6 +398,30 @@ router.post('/domain/insert-txt', authenticateApiKey, async (req, res, next) => 
 
     logger.info(`TXT record creation request for domain: ${domain}`);
     const result = await insertDomainTxtRecord(domain, content, name, ttl, zoneId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * PUT /backup/domain/txt-record
+ * Update existing TXT record via Cloudflare API
+ * Body: { domain: "example.com", recordId: "abc123", content: "new-value", ttl: 300, zoneId: "optional" }
+ */
+router.put('/domain/txt-record', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { domain, recordId, content, ttl = 120, zoneId } = req.body;
+
+    if (!domain || !recordId || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'domain, recordId, and content are required fields',
+      });
+    }
+
+    logger.info(`TXT record update request for domain: ${domain}, record: ${recordId}`);
+    const result = await updateDomainTxtRecord(domain, recordId, content, ttl, zoneId);
     res.status(200).json(result);
   } catch (error) {
     next(error);

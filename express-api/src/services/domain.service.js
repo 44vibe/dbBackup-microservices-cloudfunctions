@@ -126,6 +126,86 @@ async function insertDomainTxtRecord(domain, content, recordName = '@', ttl = 12
 }
 
 /**
+ * Update TXT record via Cloudflare API
+ * Note: Can only update content and TTL, not the record name
+ */
+async function updateDomainTxtRecord(domain, recordId, content, ttl = 120, zoneId = null) {
+  try {
+    validateDomain(domain);
+
+    if (!recordId || typeof recordId !== 'string') {
+      throw new Error('Record ID is required');
+    }
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      throw new Error('Content is required and must be a non-empty string');
+    }
+
+    if (!cloudflareClient) {
+      throw new Error('CLOUDFLARE_API_TOKEN environment variable is required');
+    }
+
+    const targetZoneId = zoneId || env.CLOUDFLARE_ZONE_ID;
+    if (!targetZoneId) {
+      throw new Error('zoneId parameter or CLOUDFLARE_ZONE_ID environment variable is required');
+    }
+
+    // Fetch the existing record to get its name (required for update)
+    // Use list and find by ID since get method signature might vary
+    const recordsResponse = await cloudflareClient.dns.records.list({ zone_id: targetZoneId });
+    const existingRecord = recordsResponse.result.find(r => r.id === recordId);
+
+    if (!existingRecord || existingRecord.type !== 'TXT') {
+      throw new Error(`TXT record with ID ${recordId} not found`);
+    }
+
+    // Use the exact name from the existing record
+    // Cloudflare returns the name as stored, which should be valid for update
+    const recordName = existingRecord.name;
+
+    logger.info(`Updating TXT record ${recordId} with name: ${recordName}, content: ${content}`);
+
+    // Update TXT record via Cloudflare API (name is required even if not changing)
+    // Note: The update method takes recordId first, then an object with zone_id and record data
+    const record = await cloudflareClient.dns.records.update(recordId, {
+      zone_id: targetZoneId,
+      type: 'TXT',
+      name: recordName,
+      content: content,
+      ttl: ttl || 120,
+    });
+
+    logger.success(`TXT record updated for ${domain}: ${record.id}`);
+
+    return {
+      success: true,
+      message: 'TXT record updated successfully via Cloudflare',
+      data: {
+        domain,
+        recordId: record.id,
+        recordName: record.name,
+        recordValue: record.content,
+        recordType: record.type,
+        ttl: record.ttl,
+        zoneId: targetZoneId,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    logger.error(`Failed to update TXT record for ${domain}:`, error);
+    logger.error(`Error details:`, JSON.stringify(error, null, 2));
+
+    if (error.message.includes('authentication') || error.message.includes('auth')) {
+      throw new Error('Cloudflare authentication failed. Check CLOUDFLARE_API_TOKEN.');
+    } else if (error.message.includes('zone')) {
+      throw new Error(`Invalid Cloudflare Zone ID. Verify CLOUDFLARE_ZONE_ID. Original error: ${error.message}`);
+    } else {
+      throw new Error(`Failed to update TXT record: ${error.message}`);
+    }
+  }
+}
+
+/**
  * Verify domain ownership via DNS TXT lookup
  */
 async function verifyDomain(domain, token) {
@@ -375,6 +455,7 @@ async function listDnsRecords(domain, zoneId = null) {
 module.exports = {
   generateDomainVerificationToken,
   insertDomainTxtRecord,
+  updateDomainTxtRecord,
   verifyDomain,
   removeDomainTxtRecord,
   listCloudflareZones,
