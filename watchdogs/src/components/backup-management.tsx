@@ -5,6 +5,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Download, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -19,6 +29,8 @@ function formatBytes(bytes: number): string {
 
 function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantdb" }) {
   const [mounted] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["backups", db],
@@ -47,6 +59,18 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
       toast.error(error.message);
     }
   });
+
+  const handleDeleteClick = (fileName: string) => {
+    setFileToDelete(fileName);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (!fileToDelete) return;
+    deleteMutate(fileToDelete);
+    setShowDeleteConfirm(false);
+    setFileToDelete(null);
+  };
 
   if (isLoading) return <p>Loading backups...</p>;
   if (error) return <p className="text-red-500">{error.message}</p>;
@@ -86,7 +110,7 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteMutate(file.name)}
+                      onClick={() => handleDeleteClick(file.name)}
                       disabled={isDeleting}
                       className="cursor-pointer whitespace-nowrap"
                     >
@@ -100,6 +124,29 @@ function BackupTable({ db }: { db: "postgres" | "mongodb" | "questdb" | "qdrantd
           )}
         </tbody>
       </table>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Backup File</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this backup file? This action cannot be undone and the backup will be permanently removed from storage.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setFileToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

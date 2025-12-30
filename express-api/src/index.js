@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { env } = require('./config/env');
 const { testConnection } = require('./config/pubsub.config');
+const { testConnection: testCloudflareConnection } = require('./config/cloudflare.config');
 const { errorHandler, notFoundHandler } = require('./middleware/error.middleware');
 const backupRoutes = require('./routes/backup.routes');
 const logger = require('./utils/logger');
@@ -55,6 +56,11 @@ app.get('/', (req, res) => {
         scheduleQdrantDBBackup: 'POST /backup/qdrantdb/schedule (requires x-api-key header and delayMinutes in body)',
         listQdrantDBBackups: 'GET /backup/qdrantdb/list (requires x-api-key header)',
         deleteQdrantDBBackup: 'DELETE /backup/qdrantdb/:fileName (requires x-api-key header)',
+        generateDomainToken: 'POST /backup/domain/generate-token (requires x-api-key header and domain in body)',
+        insertTxtRecord: 'POST /backup/domain/insert-txt (requires x-api-key header, domain and token in body)',
+        verifyDomain: 'POST /backup/domain/verify (requires x-api-key header, domain and token in body)',
+        removeTxtRecord: 'DELETE /backup/domain/txt-record (requires x-api-key header, domain and recordId in body)',
+        updateTxtRecord: 'PUT /backup/domain/txt-record (requires x-api-key header, domain and recordId in body)',
       },
     });
   });
@@ -85,6 +91,9 @@ const startServer = async () => {
     // Test Pub/Sub connection
     await testConnection();
 
+    // Test Cloudflare connection (optional - won't fail if not configured)
+    await testCloudflareConnection();
+
     // Start Express server
     app.listen(PORT, () => {
       logger.success(`Server running on port ${PORT}`);
@@ -111,6 +120,11 @@ const startServer = async () => {
       console.log(`   POST http://localhost:${PORT}/backup/qdrantdb/schedule`);
       console.log(`   GET http://localhost:${PORT}/backup/qdrantdb/list`);
       console.log(`   DELETE http://localhost:${PORT}/backup/qdrantdb/:fileName`);
+      console.log(`   POST http://localhost:${PORT}/backup/domain/generate-token`);
+      console.log(`   POST http://localhost:${PORT}/backup/domain/insert-txt`);
+      console.log(`   POST http://localhost:${PORT}/backup/domain/verify`);
+      console.log(`   DELETE http://localhost:${PORT}/backup/domain/txt-record`);
+      console.log(`   PUT http://localhost:${PORT}/backup/domain/txt-record`);
       console.log('\n✨ Ready to accept requests!\n');
     });
   } catch (error) {
