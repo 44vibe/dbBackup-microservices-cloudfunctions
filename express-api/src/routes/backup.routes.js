@@ -5,6 +5,7 @@ const { triggerPostgresBackup, triggerMongoDBBackup, triggerQuestDBBackup, trigg
 const { listPostgresBackups, listMongoDBBackups, listQuestDBBackups, listQdrantDBBackups, generateDownloadUrl, deleteBackupFile } = require('../services/bucket.service');
 const logger = require('../utils/logger');
 const { scheduleBackupTask, listScheduledTasks, getTaskDetails, cancelScheduledTask } = require('../services/task.service');
+const { generateDomainVerificationToken, insertDomainTxtRecord, verifyDomain, removeDomainTxtRecord, listCloudflareZones, listDnsRecords } = require('../services/domain.service');
 
 /**
  * POST /backup/postgres
@@ -318,6 +319,133 @@ router.delete('/delete', authenticateApiKey, async (req, res, next) => {
 
     logger.info(`Delete backup request for: ${fileName}`);
     const result = await deleteBackupFile(fileName);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /backup/domain/list
+ * List all domains in Cloudflare account
+ */
+router.get('/domain/list', authenticateApiKey, async (req, res, next) => {
+  try {
+    logger.info('Cloudflare domains list request received');
+    const result = await listCloudflareZones();
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /backup/domain/:domain/records
+ * List all DNS records for a specific domain
+ */
+router.get('/domain/:domain/records', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { domain } = req.params;
+    const { zoneId } = req.query;
+
+    logger.info(`DNS records list request for domain: ${domain}`);
+    const result = await listDnsRecords(domain, zoneId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /backup/domain/generate-token
+ * Generate verification token for a domain
+ * Body: { domain: "example.com" }
+ */
+router.post('/domain/generate-token', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { domain } = req.body;
+
+    if (!domain) {
+      return res.status(400).json({
+        success: false,
+        message: 'domain is required in request body',
+      });
+    }
+
+    logger.info(`Domain verification token generation request for: ${domain}`);
+    const result = await generateDomainVerificationToken(domain);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /backup/domain/insert-txt
+ * Create TXT record via Cloudflare API
+ * Body: { domain: "example.com", content: "txt-value", name: "@", ttl: 120, zoneId: "optional-zone-id" }
+ */
+router.post('/domain/insert-txt', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { domain, content, name = '@', ttl = 120, zoneId } = req.body;
+
+    if (!domain || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'domain and content are required in request body',
+      });
+    }
+
+    logger.info(`TXT record creation request for domain: ${domain}`);
+    const result = await insertDomainTxtRecord(domain, content, name, ttl, zoneId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /backup/domain/verify
+ * Verify domain ownership by checking DNS TXT record
+ * Body: { domain: "example.com", token: "db-backup-verify-..." }
+ */
+router.post('/domain/verify', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { domain, token } = req.body;
+
+    if (!domain || !token) {
+      return res.status(400).json({
+        success: false,
+        message: 'domain and token are required in request body',
+      });
+    }
+
+    logger.info(`Domain verification request for: ${domain}`);
+    const result = await verifyDomain(domain, token);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /backup/domain/txt-record
+ * Remove TXT record from Cloudflare after successful verification
+ * Body: { domain: "example.com", recordId: "cloudflare-record-id", zoneId: "optional-zone-id" }
+ */
+router.delete('/domain/txt-record', authenticateApiKey, async (req, res, next) => {
+  try {
+    const { domain, recordId, zoneId } = req.body;
+
+    if (!domain || !recordId) {
+      return res.status(400).json({
+        success: false,
+        message: 'domain and recordId are required in request body',
+      });
+    }
+
+    logger.info(`TXT record deletion request for domain: ${domain}`);
+    const result = await removeDomainTxtRecord(domain, recordId, zoneId);
     res.status(200).json(result);
   } catch (error) {
     next(error);

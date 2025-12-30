@@ -15,6 +15,12 @@ CLOUD_TASKS_QUEUE: z.string().optional(),
 CLOUD_TASKS_LOCATION: z.string().default('us-central1'),
 GCS_BACKUP_BUCKET: z.string().min(1, 'GCS_BACKUP_BUCKET is required'),
 FRONTEND_URL: z.string().optional(),
+// Cloudflare Configuration (optional - required only for automatic TXT record creation)
+CLOUDFLARE_API_TOKEN: z.string().optional(),
+CLOUDFLARE_ZONE_ID: z.string().optional(),
+// Domain Verification Settings (optional - has defaults)
+DOMAIN_VERIFICATION_RECORD_PREFIX: z.string().default('_db-backup-verify'),
+DOMAIN_VERIFICATION_TOKEN_PREFIX: z.string().default('db-backup-verify'),
 });
 
 function validateEnv() {

@@ -70,6 +70,67 @@ export interface DownloadUrlResponse {
   message: string;
 }
 
+export interface CreateTxtRecordRequest {
+  domain: string;
+  content: string;
+  name?: string; // Default '@'
+  ttl?: number;  // Default 120
+  zoneId?: string;
+}
+
+export interface TxtRecordResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    domain: string;
+    recordId: string;
+    recordName: string;
+    recordValue: string;
+    recordType: string;
+    ttl: number;
+    zoneId: string;
+    createdAt: string;
+  };
+}
+
+export interface DomainVerificationResult {
+  verified: boolean;
+  domain: string;
+  token: string;
+  txtRecordName: string;
+  foundRecords: string[];
+  verifiedAt?: string;
+  reason?: string;
+}
+
+export interface CloudflareZone {
+  id: string;
+  name: string;
+  status: string;
+  paused: boolean;
+  type: string;
+  nameServers: string[];
+  createdOn: string;
+  modifiedOn: string;
+  // Expiration fields from RDAP
+  expirationDate?: string;
+  registrationDate?: string;
+  daysUntilExpiration?: number;
+  registrar?: string;
+}
+
+export interface DnsRecord {
+  id: string;
+  type: string;
+  name: string;
+  content: string;
+  ttl: number;
+  proxied: boolean;
+  createdOn: string;
+  modifiedOn: string;
+  comment?: string;
+}
+
 // =============================================================================
 // BACKUP FUNCTIONS - Trigger and manage database backups
 // =============================================================================
@@ -265,6 +326,58 @@ export async function healthCheck(): Promise<ApiResponse> {
 }
 
 // =============================================================================
+// DOMAIN VERIFICATION FUNCTIONS
+// =============================================================================
+
+// Create a TXT record via Cloudflare API
+export async function createTxtRecord(request: CreateTxtRecordRequest): Promise<TxtRecordResponse> {
+  const response = await fetch(`${API_URL}/backup/domain/insert-txt`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create TXT record');
+  }
+  return response.json();
+}
+
+// Remove TXT record from Cloudflare after verification
+export async function removeDomainTxtRecord(
+  domain: string,
+  recordId: string,
+  zoneId?: string
+): Promise<ApiResponse> {
+  const response = await fetch(`${API_URL}/backup/domain/txt-record`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    body: JSON.stringify({ domain, recordId, zoneId }),
+  });
+  if (!response.ok) throw new Error('Failed to remove TXT record');
+  return response.json();
+}
+
+// List all domains in Cloudflare account
+export async function listCloudflareZones(): Promise<ApiResponse<CloudflareZone[]>> {
+  const response = await fetch(`${API_URL}/backup/domain/list`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to list Cloudflare domains');
+  return response.json();
+}
+
+// List all DNS records for a specific domain
+export async function listDnsRecords(domain: string, zoneId?: string): Promise<ApiResponse<DnsRecord[]>> {
+  const url = `${API_URL}/backup/domain/${encodeURIComponent(domain)}/records${zoneId ? `?zoneId=${zoneId}` : ''}`;
+  const response = await fetch(url, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to list DNS records');
+  return response.json();
+}
+
+// =============================================================================
 // GROUPED API OBJECT (for backward compatibility with existing code)
 // =============================================================================
 
@@ -289,6 +402,12 @@ export const api = {
     listTasks,
     getTaskDetails,
     cancelTask,
+  },
+  domain: {
+    list: listCloudflareZones,
+    listRecords: listDnsRecords,
+    createTxtRecord: createTxtRecord,
+    removeTxtRecord: removeDomainTxtRecord,
   },
   health: {
     check: healthCheck,
