@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -37,6 +47,7 @@ export function DomainVerification() {
   const [selectedDomain, setSelectedDomain] = useState<CloudflareZone | null>(null);
   const [showDnsModal, setShowDnsModal] = useState(false);
   const [showEditRecordModal, setShowEditRecordModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Form state
   const [txtName, setTxtName] = useState("@");
@@ -46,6 +57,9 @@ export function DomainVerification() {
   // Edit state
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [editingRecord, setEditingRecord] = useState<DnsRecord | null>(null);
+
+  // Delete state
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -159,14 +173,20 @@ export function DomainVerification() {
   };
 
   const handleDeleteRecord = (recordId: string) => {
-    if (!selectedDomain) return;
+    setRecordToDelete(recordId);
+    setShowDeleteConfirm(true);
+  };
 
-    if (confirm("Are you sure you want to delete this TXT record?")) {
-      removeTxt.mutate({
-        domain: selectedDomain.name,
-        recordId,
-      });
-    }
+  const confirmDelete = () => {
+    if (!selectedDomain || !recordToDelete) return;
+
+    removeTxt.mutate({
+      domain: selectedDomain.name,
+      recordId: recordToDelete,
+    });
+
+    setShowDeleteConfirm(false);
+    setRecordToDelete(null);
   };
 
   const handleEditRecord = (record: DnsRecord) => {
@@ -272,7 +292,8 @@ export function DomainVerification() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleDomainClick(zone)}
-                        className="shrink-0"
+                        className="shrink-0 cursor-pointer"
+                        aria-label="View DNS records"
                       >
                         <ExternalLink className="h-3 w-3" />
                       </Button>
@@ -369,7 +390,7 @@ export function DomainVerification() {
                   <Button
                     onClick={handleCreateTxtRecord}
                     disabled={createTxt.isPending || !txtContent.trim()}
-                    className="w-full"
+                    className="w-full cursor-pointer"
                     size="sm"
                   >
                     <Plus className="h-3 w-3 mr-2" />
@@ -389,6 +410,9 @@ export function DomainVerification() {
             <DialogTitle>
               DNS Records - {selectedDomain?.name}
             </DialogTitle>
+            <DialogDescription>
+              View and manage all DNS records for this domain. You can edit or delete TXT records.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto space-y-2">
@@ -415,7 +439,8 @@ export function DomainVerification() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteRecord(record.id)}
-                          className="h-6 px-2"
+                          className="h-6 px-2 cursor-pointer"
+                          aria-label="Delete TXT record"
                         >
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
@@ -423,7 +448,8 @@ export function DomainVerification() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleEditRecord(record)}
-                          className="h-6 px-2"
+                          className="h-6 px-2 cursor-pointer"
+                          aria-label="Edit TXT record"
                         >
                           <Edit className="h-3 w-3 text-primary" />
                         </Button>
@@ -462,6 +488,9 @@ export function DomainVerification() {
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit TXT Record</DialogTitle>
+            <DialogDescription>
+              Update the content and TTL for this TXT record. The record name cannot be changed.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto">
             <CardContent className="space-y-4">
@@ -535,7 +564,7 @@ export function DomainVerification() {
                   <Button
                     onClick={handleUpdateTxtRecord}
                     disabled={updateTxt.isPending || !txtContent.trim()}
-                    className="w-full"
+                    className="w-full cursor-pointer"
                     size="sm"
                   >
                     <Edit className="h-3 w-3 mr-2" />
@@ -551,6 +580,29 @@ export function DomainVerification() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete TXT Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this TXT record? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setRecordToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

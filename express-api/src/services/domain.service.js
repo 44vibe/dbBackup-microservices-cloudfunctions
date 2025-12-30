@@ -150,10 +150,8 @@ async function updateDomainTxtRecord(domain, recordId, content, ttl = 120, zoneI
       throw new Error('zoneId parameter or CLOUDFLARE_ZONE_ID environment variable is required');
     }
 
-    // Fetch the existing record to get its name (required for update)
-    // Use list and find by ID since get method signature might vary
-    const recordsResponse = await cloudflareClient.dns.records.list({ zone_id: targetZoneId });
-    const existingRecord = recordsResponse.result.find(r => r.id === recordId);
+    // Fetch the existing record directly by ID to get its name (required for update)
+    const existingRecord = await cloudflareClient.dns.records.get(recordId, { zone_id: targetZoneId });
 
     if (!existingRecord || existingRecord.type !== 'TXT') {
       throw new Error(`TXT record with ID ${recordId} not found`);

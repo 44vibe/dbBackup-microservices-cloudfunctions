@@ -60,6 +60,7 @@ app.get('/', (req, res) => {
         insertTxtRecord: 'POST /backup/domain/insert-txt (requires x-api-key header, domain and token in body)',
         verifyDomain: 'POST /backup/domain/verify (requires x-api-key header, domain and token in body)',
         removeTxtRecord: 'DELETE /backup/domain/txt-record (requires x-api-key header, domain and recordId in body)',
+        updateTxtRecord: 'PUT /backup/domain/txt-record (requires x-api-key header, domain and recordId in body)',
       },
     });
   });
@@ -123,6 +124,7 @@ const startServer = async () => {
       console.log(`   POST http://localhost:${PORT}/backup/domain/insert-txt`);
       console.log(`   POST http://localhost:${PORT}/backup/domain/verify`);
       console.log(`   DELETE http://localhost:${PORT}/backup/domain/txt-record`);
+      console.log(`   PUT http://localhost:${PORT}/backup/domain/txt-record`);
       console.log('\n✨ Ready to accept requests!\n');
     });
   } catch (error) {
