@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,13 +55,10 @@ export function DomainVerification() {
   const [txtTtl, setTxtTtl] = useState("120");
 
   // Edit state
-  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [editingRecord, setEditingRecord] = useState<DnsRecord | null>(null);
 
   // Delete state
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
-
-  const queryClient = useQueryClient();
 
   // Fetch domains
   const { data: domainsData, isLoading: loadingDomains } = useQuery({
@@ -114,7 +111,6 @@ export function DomainVerification() {
       setTxtName("@");
       setTxtContent("");
       setTxtTtl("120");
-      setEditingRecordId(null);
       setEditingRecord(null);
       setShowEditRecordModal(false);
       // Refetch DNS records if modal is open
@@ -335,7 +331,7 @@ export function DomainVerification() {
                       className="text-sm"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Use @ for root domain or enter subdomain (e.g., "www", "_dmarc")
+                      Use @ for root domain or enter subdomain (e.g., &quot;www&quot;, &quot;_dmarc&quot;)
                     </p>
                   </div>
 

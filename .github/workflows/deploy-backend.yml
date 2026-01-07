@@ -45,7 +45,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --service-account backup-api-publisher@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
-            --update-env-vars "GCP_PROJECT_ID=${{ env.PROJECT_ID }},GCS_BACKUP_BUCKET=postgresql-server-backups,POSTGRES_TOPIC=postgres-backup-trigger,MONGODB_TOPIC=mongodb-backup-trigger,QUESTDB_TOPIC=questdb-backup-trigger,QDRANTDB_TOPIC=qdrant-backup-trigger,CLOUD_TASKS_QUEUE=backup-tasks,CLOUD_TASKS_LOCATION=${{ env.REGION }},API_KEY=${{ secrets.BACKEND_API_KEY }},FRONTEND_URL=https://watchdogs-frontend-27617992020.${{ env.REGION }}.run.app,NODE_ENV=production"
+            --update-env-vars "GCP_PROJECT_ID=${{ env.PROJECT_ID }},GCS_BACKUP_BUCKET=postgresql-server-backups,POSTGRES_TOPIC=postgres-backup-trigger,MONGODB_TOPIC=mongodb-backup-trigger,QUESTDB_TOPIC=questdb-backup-trigger,QDRANTDB_TOPIC=qdrant-backup-trigger,CLOUD_TASKS_QUEUE=backup-tasks,CLOUD_TASKS_LOCATION=${{ env.REGION }},API_KEY=${{ secrets.BACKEND_API_KEY }},FRONTEND_URL=https://watchdogs-frontend-27617992020.${{ env.REGION }}.run.app,NODE_ENV=production,CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }},CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}"
 
       - name: Show deployment result
         run: |
